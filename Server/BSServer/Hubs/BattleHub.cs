@@ -10,10 +10,9 @@ namespace SignalR.Server.Hubs
     {
         private static int accum = 0;
 
-        public int GetNumber(int number)
+        public string PlayerSetup(string player)
         {
-            accum = number + 10;
-            return accum;
+            return $"Player {player} is now setup";
         }
 
         public void SendX(string userid, string mth)
