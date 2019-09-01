@@ -634,7 +634,6 @@ namespace BattleshipApi.Controllers
         [Route("api/hitlist")]
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [System.Web.Http.HttpPost]
-        //public HttpResponseMessage GetStatus(string companyid, string surveyid, string waveid)
         public HttpResponseMessage UpdateHitlist(HttpRequestMessage request)
         {
             var byteArray = request.Content.ReadAsByteArrayAsync().Result;
@@ -760,7 +759,6 @@ namespace BattleshipApi.Controllers
         [Route("api/getuserinfo")]
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [System.Web.Http.HttpPost]
-        //public HttpResponseMessage GetStatus(string companyid, string surveyid, string waveid)
         public HttpResponseMessage getuserinfo(HttpRequestMessage request)
         {
             return GetStatus(request);
@@ -784,7 +782,6 @@ namespace BattleshipApi.Controllers
         [Route("api/status")]
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         [System.Web.Http.HttpPost]
-        //public HttpResponseMessage GetStatus(string companyid, string surveyid, string waveid)
         public HttpResponseMessage GetStatus(HttpRequestMessage request)
         {
             var byteArray = request.Content.ReadAsByteArrayAsync().Result;
@@ -884,9 +881,5 @@ namespace BattleshipApi.Controllers
             return resp;
         }
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
     }
 }
