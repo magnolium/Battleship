@@ -176,7 +176,7 @@ namespace SignalR.Server.Hubs
                 if (views.Count() == 0)
                 {
                     sb.Clear();
-                    sb.AppendFormat("{{\"game_id\":\"{0}\", \"next_player\" : \"{1}\", \"user_1\":\"{2}\",\"user_2\":\"{3}\", \"issuer\": \"{4}\",\"action\":\"{5}\", {6}, {7},\"ships_remote\": [], \"hits_remote\": [], \"winner\":\"@@@@\"}}", idd_1, user_remote, user_local, user_remote, user_local, action, sbx.ToString(), sbk.ToString());
+                    sb.AppendFormat("{{\"game_id\":\"{0}\", \"next_player\" : \"{1}\", \"user_1\":\"{2}\",\"user_2\":\"{3}\", \"issuer\": \"{4}\",\"action\":\"{5}\", {6}, {7},\"ships_remote\": [], \"hits_remote\": [], \"winner\":\"@@@@\", \"ship_down_for\":\"@@@@\"}}", idd_1, user_remote, user_local, user_remote, user_local, action, sbx.ToString(), sbk.ToString());
                     BsonDocument bsdx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
                     gamers.Insert(bsdx);
                 }
@@ -568,6 +568,7 @@ namespace SignalR.Server.Hubs
             }
 
             StringBuilder sb = new StringBuilder();
+            StringBuilder sbQueryX = new StringBuilder();
 
             try
             {
@@ -587,44 +588,82 @@ namespace SignalR.Server.Hubs
                 GetDB db = new GetDB(s_serverip, s_Database);
                 db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
 
+                MongoUpdateOptions muo = new MongoUpdateOptions();
+                muo.Flags = UpdateFlags.Multi;
+
                 MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
                 BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
                 QueryDocument queryDoc = new QueryDocument(queryX);
                 MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
                 List<BsonDocument> game = gamers.ToList();
 
+                //Update HIT in Ship
+                sbQueryX.Clear();
+
+                string cellx = bsd.GetElement("cell").Value.ToString();
+                BsonArray ships = null;
+
+                //UPDATE HIT
+                bool this_is_a_hit_cell = false;
+
+                if (game[0].GetElement("issuer").Value.ToString() == user_1)
+                    ships = (BsonArray)game[0].GetElement("ships_remote").Value;
+                else
+                    ships = (BsonArray)game[0].GetElement("ships").Value;
+
+                int index = 0;
+                foreach (BsonValue bv in ships)
+                {
+                    BsonDocument qx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(bv.ToString());
+                    if (qx.GetElement("cell").Value.ToString() == cellx)
+                    {
+                        if (game[0].GetElement("issuer").Value.ToString() == user_1)
+                            sbQueryX.AppendFormat("{{ $set: {{ \"ships_remote.{0}.hit\" : \"Y\" }} }}", index);
+                        else
+                            sbQueryX.AppendFormat("{{ $set: {{ \"ships.{0}.hit\" : \"Y\" }} }}", index);
+
+                        var qry = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                        UpdateDocument updateDocX = new UpdateDocument(qry);
+                        gamersDoc.Update(queryDoc, updateDocX, muo);
+                        this_is_a_hit_cell = true;
+                        break;
+                    }
+                    index++;
+                }
+
                 //Retrieve your hitlist
                 BsonArray bsa = null;
+
                 if (game[0].GetElement("issuer").Value.ToString() == user_1)    //ISSUER
-                {
-                    bsa = (BsonArray)game[0].GetElement("hits_remote").Value;
-                    string cell = bsd.GetElement("cell").Value.ToString();
-                    //string evt = bsd.GetElement("event").Value.ToString();
-
-                    BsonDocument newBSD = new BsonDocument
-                    {
-                        {"cell" , cell},
-                        {"hit" , "evt"}
-                    };
-
-                    bsa.Add(newBSD);
-                }
-                else
                 {
                     bsa = (BsonArray)game[0].GetElement("hits").Value;
                     string cell = bsd.GetElement("cell").Value.ToString();
-                    //string evt = bsd.GetElement("event").Value.ToString();
-
-                    BsonDocument newBSD = new BsonDocument
+                    
+                    if (!this_is_a_hit_cell)
                     {
-                        {"cell" , cell},
-                        {"hit" , "evt"}
-                    };
+                        BsonDocument newBSD = new BsonDocument
+                        {
+                            {"cell" , cell}
+                        };
+                        bsa.Add(newBSD);
+                    }
+                }
+                else
+                {
+                    bsa = (BsonArray)game[0].GetElement("hits_remote").Value;
+                    string cell = bsd.GetElement("cell").Value.ToString();
 
-                    bsa.Add(newBSD);
+                    if (!this_is_a_hit_cell)
+                    {
+                        BsonDocument newBSD = new BsonDocument
+                        {
+                            {"cell" , cell}
+                        };
+                        bsa.Add(newBSD);
+                    }
                 }
 
-                StringBuilder sbQueryX = new StringBuilder();
+                sbQueryX.Clear();
                 if (game[0].GetElement("action").Value.ToString() == "PLAY")
                 {
                     if (game[0].GetElement("issuer").Value.ToString() == user_1)
@@ -640,12 +679,9 @@ namespace SignalR.Server.Hubs
                         sbQueryX.AppendFormat("{{ $set: {{ hits : {0}, action : \"PLAY\", \"next_player\" : \"{1}\"  }} }}", bsa, user_2);
                 }
 
-                MongoUpdateOptions muo = new MongoUpdateOptions();
-                muo.Flags = UpdateFlags.Multi;
                 BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
                 UpdateDocument updateDoc = new UpdateDocument(queryx);
                 gamersDoc.Update(queryDoc, updateDoc, muo);
-
                 gamers = gamersDoc.Find(queryDoc);
                 if (gamers != null)
                 {
@@ -834,7 +870,7 @@ namespace SignalR.Server.Hubs
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            UserHandler.ConnectedIds.Remove(Context.ConnectionId);
+            //UserHandler.ConnectedIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
     }

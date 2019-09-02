@@ -683,12 +683,12 @@ namespace BattleshipApi.Controllers
                 {
                     bsa = (BsonArray)game[0].GetElement("hits_remote").Value;
                     string cell = bsd.GetElement("cell").Value.ToString();
-                    string evt = bsd.GetElement("event").Value.ToString();
+                    //string evt = bsd.GetElement("event").Value.ToString();
 
                     BsonDocument newBSD = new BsonDocument
                     {
-                        {"cell" , cell},
-                        {"hit" , evt}
+                        {"cell" , cell}
+                        //{"hit" , evt}
                     };
 
                     bsa.Add(newBSD);
@@ -697,12 +697,12 @@ namespace BattleshipApi.Controllers
                 {
                     bsa = (BsonArray)game[0].GetElement("hits").Value;
                     string cell = bsd.GetElement("cell").Value.ToString();
-                    string evt = bsd.GetElement("event").Value.ToString();
+                    //string evt = bsd.GetElement("event").Value.ToString();
 
                     BsonDocument newBSD = new BsonDocument
                     {
-                        {"cell" , cell},
-                        {"hit" , evt}
+                        {"cell" , cell}
+                        //{"hit" , evt}
                     };
 
                     bsa.Add(newBSD);
