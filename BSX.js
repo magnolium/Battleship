@@ -466,6 +466,23 @@ function createSVGObject(x, y, cell_color) {
         .style("fill", clr)
         .on('keypress', objKeydown)
         .on("click", OnGameboardClick)   
+        .on("mouseover", function (d)
+        {
+            tooltip.transition()        
+                .duration(2000)     
+                .style("opacity", .9);
+
+            tooltip.html('<H1>' + "cell_"+x+"_"+y + '</H1>')
+                .style("width", "200px")
+                //.style("height",  "20px")
+                .style("left", "10px")
+                .style("top", "700px")
+                .attr("y", "20px");            
+        })        
+        .on("mouseout", function(d) 
+        {       
+            tooltip.transition().duration(500).style("opacity", 0); 
+        })        
         .style("stroke", cell_stroke_colour)
         .style("stroke-opacity", cell_stroke_opacity)
         .style("stroke-width", cell_strokew);
@@ -504,6 +521,23 @@ function createSVGObject(x, y, cell_color) {
             .style("fill", clr)
             .on('keypress', objKeydown)
             .on("click", OnGameboardClick)   
+            .on("mouseover", function (d)
+            {
+                tooltip.transition()        
+                    .duration(2000)     
+                    .style("opacity", .9);
+
+                tooltip.html('<H1>' + "cell_"+x+"_"+y + '</H1>')
+                    .style("width", "200px")
+                    //.style("height",  "20px")
+                    .style("left", "10px")
+                    .style("top", "700px")
+                    .attr("y", "20px");            
+            })        
+            .on("mouseout", function(d) 
+            {       
+                tooltip.transition().duration(500).style("opacity", 0); 
+            })              
             .style("stroke", cell_stroke_colour)
             .style("stroke-opacity", cell_stroke_opacity)
             .style("stroke-width", cell_strokew);
@@ -1412,26 +1446,51 @@ function UpdateHitlistJSON(cell){
     json = json + "\"columns\" : " + columns+",";
     json = json + "\"rows\" : " + rows +",";
     json = json + "\"cell\" : \"" + cell + "\"}";
+    /*
+    $.when( $.ajax({
+        'url': apiroot + 'hitlist',
+        'data': json,
+        'type' : "POST",
+        'success': function (data)
+        {
+            retValue = data;
+        },
+        'error': function (jqXHRX, textStatus, errorThrown)
+        {
+            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
+        },
+        'dataType': 'json',
+        }
+    )).then(function (dataz)   //ensures this bit runs after the view list is completed
+    {
+        //console.log("Update done", dataz);
+        TURN_CHANGE = true;
 
-    //console.log("JX:", json);
+        getStatus();
+        //Reconcile the gameboard from the hitlist
+        pauseClock = false;
 
+    });
+    */
+    
     hubConnection.invoke("UpdateHitList", json)
     .then(datax => {
         var data = JSON.parse(datax);
 
         retValue = data;
         
-        //console.log("Update done", dataz);
+        console.log("Update done:", retValue);
         TURN_CHANGE = true;
 
         hubConnection.invoke("UpdateGameBoard", gUser, gRemoteUser);
 
-        getStatus();
+        //getStatus();
 
         //Reconcile the gameboard from the hitlist
         pauseClock = false;
 
     })
+    
 }
 
 function clearGameboard(){
@@ -1512,7 +1571,7 @@ function getStatus(){
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
-        console.log("GetStatus:", data)
+        //console.log("GetStatus:", data)
 
         var q = 0;
         var k = 0;
@@ -1575,13 +1634,15 @@ function getStatus(){
                     }
 
                     //AUDIO NOTIFICATION CONTROL FOR OPPOSITION
-                    console.log("pShp", pShp);
+                    
+                    //console.log("pShp:", pShp);
+                    //console.log("prvpShp:", prvpShp);
                     $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
                     {
                         var prvObj = prvpShp[i];
                         if(obj.hit==="Y")
                         {
-                            //console.log("HIT:", obj.cell, prvObj.cell);
+                            console.log("HIT:", obj.cell, prvObj.cell);
                             if(prvObj.hit==="N")
                             {
                                 console.log("**HIT**");
@@ -1730,7 +1791,7 @@ function getStatus(){
         else
             $("#activeX")[0].innerHTML = "Active Games";
 
-        console.log("getStatus-isIssuer", isIssuer, );
+        //console.log("getStatus-isIssuer", isIssuer, );
 
         if(REQUEST_MODE)    //Disable buttons
         {
@@ -1767,276 +1828,6 @@ function getStatus(){
         }
 
     })
-    
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'status',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {   
-            var q = 0;
-            var k = 0;
-            $("#request-tab").html("");
-            $("#game-tab").html("");
-            
-            //console.log("getStatus", data.requests.length);
-            if(data.requests != undefined)
-            {
-                if(data.requests.length === 0)  //Clear the board
-                {
-                    //console.log("No gameboard activity detected");
-
-                    $("#requestX")[0].innerHTML = "Requests";
-                    $("#activeX")[0].innerHTML = "Active Games";
-                    clearGameboard();
-                    $('#action_wait').hide();
-                    return;
-                }
-                else
-                {
-                    //console.log("getStatus", data.requests[0].action);
-                    var btn = document.getElementById('btn-status');
-
-
-                    if(last_data===null)
-                        last_data = data;
-
-                    //DO COMAPRE
-                    //Previous status check
-                    if(current_status != null && PLAY_MODE )
-                    {
-                        
-                        //var shiplen = 0;
-                        if(isIssuer === gUser)
-                        {
-                            //console.log("YOU ARE THE ISSUER");
-                            pHit = data.requests[0].hits_remote;
-                            pShp = data.requests[0].ships_remote;
-                            vHit = data.requests[0].hits;
-                            vShp = data.requests[0].ships;
-
-                            prvpHit = last_data.requests[0].hits_remote;
-                            prvpShp = last_data.requests[0].ships_remote;
-                            prvHit = last_data.requests[0].hits;
-                            prvShp = last_data.requests[0].ships;
-                        }
-                        else
-                        {
-                            //console.log("YOU ARE NOT THE ISSUER");
-                            pHit = data.requests[0].hits;   
-                            pShp = data.requests[0].ships;   
-                            vHit = data.requests[0].hits_remote;   
-                            vShp = data.requests[0].ships_remote;   
-                            
-                            prvpHit = last_data.requests[0].hits;
-                            prvpShp = last_data.requests[0].ships;
-                            prvHit = last_data.requests[0].hits_remote;
-                            prvShp = last_data.requests[0].ships_remote;
-                        }
-
-                        //AUDIO NOTIFICATION CONTROL FOR OPPOSITION
-                        //console.log("AUDIO NOTIFY");
-                        $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
-                        {
-                            var prvObj = prvpShp[i];
-                            if(obj.hit==="Y")
-                            {
-                                //console.log("HIT:", obj.cell, prvObj.cell);
-                                if(prvObj.hit==="N")
-                                {
-                                    console.log("**HIT**");
-                                    hit();
-                                }
-                                var imgMiss = imgroot+"/bs_hit.png";
-                                let idd = obj.cell;
-                                var nodeLocal = svg.selectAll(".hit."+ idd);
-                                nodeLocal.attr("xlink:href", imgMiss );              
-                            }
-                        });
-
-                        if(pHit.length>prvpHit.length)
-                            splash();
-
-                        if(vHit.length>prvHit.length)
-                            splash();
-
-                        last_data = data;
-                    }
-
-                    ////////////////////// GET USER INFO //////////////////
-                    getuserinfo();
-                    ///////////////////////////////////////////////////////
-
-                    if(TURN_CHANGE)
-                    {
-                        TURN_CHANGE = false;
-
-                        if(PING === 0)
-                            PING = 1;
-                        //console.log("TURN_CHANGE");
-                    }
-                }
-            }
-            else
-            {
-                if(data.user==="NOTFOUND");
-                {
-                    pauseClock = true;
-
-                    localStorage.setItem("game_user", "");
-                    localStorage.setItem("game_pswd", "");
-                    gUser = "";
-                    gRemoteUser = "";
-
-                    $("#span-submit-1").html("Apply");
-                    var btn = document.getElementById('btn-submit-2');
-                    btn.style.visibility = "hidden";
-
-                    $("#hdr-cfg-local").html(gUser);
-                    $("#hdr-cfg-remote").html(gRemoteUser);
-
-                    $('#id_local').addClass("active");
-
-                    var modal = document.getElementById('loginModal');
-                    var modalFrm = document.getElementById('loginForm');
-                    
-                        modalFrm.onclick = function(event) {
-                        //modal.style.display = "none";
-                        //modalFrm.style.display = "none";
-                    }
-                    // When the user clicks anywhere outside of the modal, close it
-                    modal.onclick = function(event) {
-                        //modal.style.display = "none";
-                    }
-
-                    modal.style.display = "block";    
-                }
-                return;
-            }
-
-            $.each(data.requests, function (i, obj)
-            {
-                //console.log(obj);
-                
-                if(obj.user_2 === gUser && obj.action==="REQ")
-                {
-                    q++;
-                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_request_btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
-                    $("#request-tab").append(tddata);
-                    
-                }
-                
-                //console.log(obj.user_1, "===", gUser,"|", obj.user_2, "===", gUser);
-                if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
-                {
-                    k++;
-                    var tddata = "";
-
-                    if(gUser === obj.user_1)
-                        tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
-                    else
-                        tddata = '<div id="btn-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
-
-                    $("#game-tab").append(tddata);
-                }
-                
-                //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
-                //console.log("ACTION: ", obj.issuer);
-
-                isIssuer = obj.issuer;
-
-                myStatus = obj.action;
-
-                if(obj.action==="REQ")
-                {
-                    if(isIssuer === gUser)
-                        REQUEST_MODE = true;
-                    else
-                        REQUEST_MODE = false;
-                }
-
-                if(obj.next_player!==gUser)
-                {
-                    REQUEST_MODE = false;
-                    PLAY_MODE = true;
-                    YOURTURN = false;
-                    $("#userturn")[0].innerHTML = "THEIR TURN";
-                    $("#userturn").addClass("disable");
-                }
-                
-                if(obj.next_player===gUser && gRemoteUser !== "")
-                {
-                    REQUEST_MODE = false;
-                    PLAY_MODE = true;
-                    YOURTURN = true;
-                    $("#userturn").removeClass("disable");
-                    $("#userturn")[0].innerHTML = "YOUR TURN";
-                    
-                    if(PING)
-                    {
-                        ping();
-                        PING = 0;
-                    }                    
-                }
-            });
-
-            if(q>0)
-                $("#requestX")[0].innerHTML = "Requests ("+q+")";
-            else
-                $("#requestX")[0].innerHTML = "Requests";
-
-            if(k>0)
-                $("#activeX")[0].innerHTML = "Active Games ("+k+")";
-            else
-                $("#activeX")[0].innerHTML = "Active Games";
-
-            //console.log("getStatus-isIssuer", isIssuer, );
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the getStatus: '+ textStatus);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        if(REQUEST_MODE)    //Disable buttons
-        {
-            $('#btn-reset').addClass('disable')
-            $('#btn-request').addClass('disable')
-            $('#btn-play-again').addClass('disable')
-            if(myStatus !== "REQ")
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').addClass('disable')
-        }
-        else if(PLAY_MODE)    //Disable buttons
-        {
-            $('#btn-reset').addClass('disable')
-            $('#btn-request').addClass('disable')
-            $('#btn-play-again').addClass('disable')
-            if(myStatus !== "WAIT" || myStatus !== "PLAY")
-            {
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').addClass('disable')
-                else
-                    $('#btn-end-game').removeClass('disable')
-            }
-        }
-        else
-        {
-            //console.log("** ENABLE BUTTONS **")
-            $('#btn-reset').removeClass('disable')
-            $('#btn-request').removeClass('disable')
-            $('#btn-play-again').addClass('disable')
-
-            if(isIssuer !== "")
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').removeClass('disable')
-        }
-
-    });
-    */
 }
 
 function getuserinfo(fromRemote=false){
@@ -2057,7 +1848,7 @@ function getuserinfo(fromRemote=false){
     .then(datax => {
         var dataz = JSON.parse(datax);
         // you can access your data here
-        console.log("getuserinfo:", dataz)
+        //console.log("getuserinfo:", dataz)
 
         if(dataz.requests.length===0)
             return;
@@ -2180,11 +1971,6 @@ function getuserinfo(fromRemote=false){
         $("#percid").removeClass("win");
         $("#percid").removeClass("lose");
         $("#percid")[0].innerHTML = (sunk + " of " + vShp.length);        
-
-        if(sunk === vShp.length)
-        {
-
-        }
 
         if(dataz.requests[0].winner === gUser )
         {
@@ -2259,226 +2045,6 @@ function getuserinfo(fromRemote=false){
 
 
     })
-
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'getuserinfo',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        //console.log("GOT OPPOSITION INFO", dataz.requests);
-
-        if(dataz.requests.length===0)
-            return;
-
-        var ship_arr = new Array;
-        var pHit = new Array;
-        var pShp = new Array;
-        var pHitOp = new Array;
-        var pShpOp = new Array;
-        var prvHit = new Array;
-        var prvShp = new Array;
-        var prvpHit = new Array;
-        var prvpShp = new Array;
-
-        var vHit = new Array;
-        var vShp = new Array;
-        var vHitOp = new Array;
-        var vShpOp = new Array;
-        
-        //Previous status check
-        if(current_status != null && PLAY_MODE)
-        {
-            
-            //var shiplen = 0;
-            if(isIssuer === gUser)
-            {
-                //console.log("YOU ARE THE ISSUER");
-                pHit = dataz.requests[0].hits_remote;
-                pShp = dataz.requests[0].ships_remote;
-                vHit = dataz.requests[0].hits;
-                vShp = dataz.requests[0].ships;
-                prvShp = current_status.requests[0].ships;
-                prvHit = current_status.requests[0].hits;
-                prvpShp = current_status.requests[0].ships_remote;
-                prvpHit = current_status.requests[0].hits_remote;
-            }
-            else
-            {
-                //console.log("YOU ARE NOT THE ISSUER");
-                pHit = dataz.requests[0].hits;   
-                pShp = dataz.requests[0].ships;   
-                vHit = dataz.requests[0].hits_remote;   
-                vShp = dataz.requests[0].ships_remote;   
-                prvShp = current_status.requests[0].ships_remote;
-                prvHit = current_status.requests[0].hits_remote;
-                prvpShp = current_status.requests[0].ships;
-                prvpHit = current_status.requests[0].hits;
-            }
-        }
-
-        sunk = 0;
-
-        //SHOW YOUR FLEET
-        $.each(vShp, function (i, obj)
-        {
-            let idd = obj.cell;
-            var nodeLocal = svg.selectAll(".sea."+ idd);
-            if(obj.isship==="1")
-            {
-                if(obj.hit==="N" )
-                    nodeLocal.attr("xlink:href", obj.img );    
-                else if(obj.sunk==="Y" )
-                    nodeLocal.attr("xlink:href", imgroot+"/bs_sea.png" );    
-                else
-                    nodeLocal.attr("xlink:href", obj.sunk_img );    
-            }
-            else
-                nodeLocal.attr("xlink:href", imgSea );    
-        });
-
-        //Clear hits
-        svg.selectAll(".hit").attr("xlink:href", imgroot+"/bs_bak.png" )
-
-        //OVERLAY HITS
-        $.each(vHit, function (i, obj) //search my hits against opponent and update the hitboard
-        {
-            var imgMiss = imgroot+"/bs_miss.png";
-            let idd = obj.cell;
-            var nodeLocal = svg.selectAll(".sea."+ idd);
-            nodeLocal.attr("xlink:href", imgMiss );              
-        });
-        
-        //OVERLAY YOUR MISSES ON YOUR BOARD
-        $.each(pHit, function (i, obj) //search my hits against opponent and update the hitboard
-        {
-            var imgMiss = imgroot+"/bs_miss.png";
-            let idd = obj.cell;
-            var nodeLocal = svg.selectAll(".hit."+ idd);
-            nodeLocal.attr("xlink:href", imgMiss );              
-        });
-        
-        //OVERLAY YOUR HITS ON YOUR BOARD
-        $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
-        {
-            if(obj.hit==="Y")
-            {
-                sunk = sunk + 1;
-                var imgMiss = imgroot+"/bs_hit.png";
-
-                let idd = obj.cell;
-                var nodeLocal = svg.selectAll(".hit."+ idd);
-
-                if(obj.sunk==="Y")
-                {
-                    nodeLocal.attr("xlink:href", obj.sunk_img ).attr("opacity", .15);
-                }
-                else
-                    nodeLocal.attr("xlink:href", imgMiss );              
-            }
-        });
-    
-        
-        //if(vHit.length>prvHit.length)
-        //    splash();
-        
-      
-        current_status = dataz;
-        /////////////////////////////////
-        
-        $("#percid").removeClass("win");
-        $("#percid").removeClass("lose");
-        $("#percid")[0].innerHTML = (sunk + " of " + vShp.length);        
-
-        if(sunk === vShp.length)
-        {
-
-        }
-
-        if(dataz.requests[0].winner === gUser )
-        {
-            if(dataz.requests[0].ship_down_for === "@@CLEARBOARD@@")
-            {
-                UpdateField("ship_down_for", "@@@@", "string");
-                UpdateField("winner", "@@@@", "string");
-                clearGameboard();
-            }            
-
-            $("#percid").addClass("win");
-            $("#percid")[0].innerHTML = "YOU WIN";
-            PLAY_MODE = false;
-            $('#btn-play-again').removeClass('disable')
-            if(gUser === isIssuer)
-                $('#btn-end-game').removeClass('disable')            
-        }
-        else
-        {
-            if(dataz.requests[0].winner != "@@@@")
-            {
-                $("#percid").addClass("lose");
-                $("#percid")[0].innerHTML = "YOU LOSE";
-                PLAY_MODE = false;
-                if(gUser === isIssuer)
-                    $('#btn-end-game').removeClass('disable')
-
-                if(dataz.requests[0].ship_down_for === "@@PLAYAGAIN@@")
-                {
-                    //console.log("@@PLAYAGAIN@@");
-                    pauseClock = true;
-
-                    var modal = document.getElementById('playAgainModal');
-                    var modalFrm = document.getElementById('playAgainForm');
-                    
-                    modalFrm.onclick = function(event) {
-                        //modal.style.display = "none";
-                        //modalFrm.style.display = "none";
-                    }
-                    // When the user clicks anywhere outside of the modal, close it
-                    modal.onclick = function(event) {
-                        //modal.style.display = "none";
-                    }
-
-                    modal.style.display = "block";    
-                    modalFrm.style.display = "block";
-
-                }
-            }
-        }
-
-        if(dataz.requests[0].ship_down_for !== "@@@@")
-        {
-            boom();
-        }
-
-        if(dataz.requests[0].ship_down_for === gUser)
-        {
-            var cell = dataz.requests[0].ship_cell;
-            var nodeLocal = svg.selectAll(".sea."+ cell);
-            var x = Number(nodeLocal.attr("x"))+20;
-            var y = Number(nodeLocal.attr("y"))+20;
-
-            svg.selectAll("circle").remove();
-            var ex = createSVGExplosion();
-            ex.attr("cx", x).attr("cy", y).transition().duration(1000).attr("r", "100").transition().duration(1000).attr("r", "0");
-
-            boom();
-            BattleshipDown(true);
-            SinkTheShip(cell);
-        }        
-        
-    });    
-    */
 }
 
 function hitCount(hits){
@@ -2834,7 +2400,7 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
     var norefresh = false;
     var gUser = localStorage.getItem("game_user");
 
-    console.log("Controller");
+    //console.log("Controller");
 
     $rootScope.angHubConnection = new signalR.HubConnectionBuilder()
         .withUrl("http://localhost:5000/BattleHub")
@@ -2844,19 +2410,19 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
-        console.log("ANG-HUB-1 Response:", data)
+        //console.log("ANG-HUB-1 Response:", data)
         Angular_loadUserList();
     })    
     
     function Angular_loadUserList(){
-        console.log("Angular_loadUserList");
+        //console.log("Angular_loadUserList");
         var jsonGet = apiroot+'gamers';
         var jsonPost = apiroot+'gamers';
         
         gUser = localStorage.getItem("game_user");
         
         var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
-        console.log("myApp:", jx);
+        //console.log("myApp:", jx);
 
         Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
         
@@ -2875,7 +2441,7 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
         
         var js = JSON.parse(data);
         
-        console.log("successCallback", js);
+        //console.log("successCallback", js);
 
         $rootScope.categories = js.data.gamers;
 
@@ -2891,7 +2457,7 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
     }
 
     function successCallbackX(data){
-        console.log("successCallbackX", data);
+        //console.log("successCallbackX", data);
         $rootScope.categories = data.data.gamers;
 
         if(norefresh)
