@@ -791,8 +791,8 @@ namespace SignalR.Server.Hubs
 
             foreach (BsonDocument bsa in bsArray)
             {
-                if (bsa.Contains("hit"))
-                    if (bsa.GetElement("hit").Value.ToString() == "H")
+                if (bsa.Contains("sunk"))
+                    if (bsa.GetElement("sunk").Value.ToString() == "Y")
                         total++;
             }
 
@@ -855,9 +855,9 @@ namespace SignalR.Server.Hubs
                 string issuer = bsdx.GetElement("issuer").Value.ToString();
                 if (userid == issuer)
                 {
-                    BsonArray arr = (BsonArray)bsdx.GetElement("hits_remote").Value;
+                    //BsonArray arr = (BsonArray)bsdx.GetElement("hits_remote").Value;
                     BsonArray shp = (BsonArray)bsdx.GetElement("ships_remote").Value;
-                    int q = CountHits(arr);
+                    int q = CountHits(shp);
                     b = q;
                     s = shp.Count();
                     if (q == shp.Count() && q != 0)
@@ -867,9 +867,9 @@ namespace SignalR.Server.Hubs
                 }
                 else
                 {
-                    BsonArray arr = (BsonArray)bsdx.GetElement("hits").Value;
+                    //BsonArray arr = (BsonArray)bsdx.GetElement("hits").Value;
                     BsonArray shp = (BsonArray)bsdx.GetElement("ships").Value;
-                    int q = CountHits(arr);
+                    int q = CountHits(shp);
                     b = q;
                     s = shp.Count();
                     if (q == shp.Count() && q != 0)
@@ -898,6 +898,14 @@ namespace SignalR.Server.Hubs
             }
 
             return sbx.ToString();
+        }
+
+        public void PlayAgain(string data)
+        {
+            BsonDocument bsd = ConvertPostData(data);
+            string user1 = bsd.GetElement("user_1").Value.ToString();
+            string user2 = bsd.GetElement("user_2").Value.ToString();
+            Clients.All.SendAsync("ClearMonitor", data);
         }
 
         public string BattleshipDown(string data)
@@ -984,9 +992,9 @@ namespace SignalR.Server.Hubs
                 BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
                 UpdateDocument updateDoc = new UpdateDocument(queryx);
                 gamersDoc.Update(queryDoc, updateDoc, muo);
-
+                Clients.All.SendAsync("ClearMonitor", data);
             }
-
+            
             return bsd.ToString();
         }
 

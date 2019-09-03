@@ -22,6 +22,15 @@ $(document).ready(function () {
         getStatus();        
     });
 
+    hubConnection.on("ClearMonitor", data => {
+        //console.log("*** CLEAR GAME ***", data);
+        UpdateField("ship_down_for", "@@@@", "string");
+        UpdateField("winner", "@@@@", "string");   
+        clearGameboard();     
+        getStatus();        
+        pauseClock = false;
+    });
+
     hubConnection.start().then(() => hubConnection.invoke("PlayerSetup", gUser))
     .then(datax => {
         console.log("SYSTEM-READY:", datax);
@@ -838,18 +847,18 @@ function BuildTheFleet(quietly) //
     createSVGExplosion();
 
     //Generate 4 5
-    generateAircraftCarrier(quietly, 5, 0);
-    generateAircraftCarrier(quietly, 5, 1);
-    generateAircraftCarrier(quietly, 5, 2);
-    generateAircraftCarrier(quietly, 5, 3);
+    // generateAircraftCarrier(quietly, 5, 0);
+    // generateAircraftCarrier(quietly, 5, 1);
+    // generateAircraftCarrier(quietly, 5, 2);
+    // generateAircraftCarrier(quietly, 5, 3);
 
     //Generate 1 4
-    generateAircraftCarrier(quietly, 4, 4);
+    generateAircraftCarrier(quietly, 3, 4);
 
     //Generate 2 3
-    generateAircraftCarrier(quietly, 3, 5);
-    generateAircraftCarrier(quietly, 3, 6);
-    generateAircraftCarrier(quietly, 3, 7);
+    // generateAircraftCarrier(quietly, 3, 5);
+    // generateAircraftCarrier(quietly, 3, 6);
+    // generateAircraftCarrier(quietly, 3, 7);
  
 }
 
@@ -1226,7 +1235,7 @@ function buildFleetJSON(HASBRACKETS=true){
     {
         var sunk_img = obj.getAttribute("href").replace(".png", "_h.png");
         if( obj.getAttribute("isship") === "1")
-            ship = ship + "{ \"cell\" : \"" +  obj.getAttribute("idx") + "\", \"isship\" : \"" + obj.getAttribute("isship") + "\", \"img\" : \"" + obj.getAttribute("href") + "\",\"sunk_img\" : \"" + sunk_img + "\",\"ship_part\" : \"" + obj.getAttribute("ship_part") + "\",\"hit\" : \"N\",\"sunk\" : \"N\"}";
+            ship = ship + "{ \"cell\" : \"" +  obj.getAttribute("idx") + "\", \"isship\" : \"" + obj.getAttribute("isship") + "\", \"img\" : \"" + obj.getAttribute("href") + "\",\"sunk_img\" : \"" + sunk_img + "\",\"ship_part\" : \"" + obj.getAttribute("ship_part") + "\",\"hit\" : \"N\",\"sunk\" : \"N\"},";
 
         if( obj.getAttribute("hit") === "H" || obj.getAttribute("hit") === "M"  )
             hits = hits + "{ \"cell\" : \"" +  obj.getAttribute("idx") + "\", \"hit\" : \"" + obj.getAttribute("hit") + "\"},";
@@ -1778,12 +1787,12 @@ function getuserinfo(fromRemote=false){
                 $("#percid").addClass("lose");
                 $("#percid")[0].innerHTML = "YOU LOSE";
                 PLAY_MODE = false;
-                if(gUser === isIssuer)
+                if(gUser !== isIssuer)
                     $('#btn-end-game').removeClass('disable')
 
                 if(dataz.requests[0].ship_down_for === "@@PLAYAGAIN@@")
                 {
-                    //console.log("@@PLAYAGAIN@@");
+                    console.log("@@PLAYAGAIN@@");
                     pauseClock = true;
 
                     var modal = document.getElementById('playAgainModal');
@@ -1805,7 +1814,7 @@ function getuserinfo(fromRemote=false){
             }
         }
 
-        if(dataz.requests[0].ship_down_for !== "@@@@")
+        if(dataz.requests[0].ship_down_for !== "@@@@" && dataz.requests[0].ship_down_for !== "@@CLEARBOARD@@" && dataz.requests[0].ship_down_for !== "@@PLAYAGAIN@@")
         {
             boom();
         }
@@ -1825,7 +1834,7 @@ function getuserinfo(fromRemote=false){
 
             boom();
             BattleshipDown(true);
-            //SinkTheShip(cell);
+            SinkTheShip(cell);
         }        
 
 
@@ -1937,14 +1946,19 @@ function splash(){
 
 function btnPlayAgain(reset){
 
+    PlayAgain();
+
+    /*
     if(current_status.requests[0].winner === gUser )
     {
         var json = "{";    
         json = json + "\"user_1\":\""+isIssuer+"\",";
+        
         if(isIssuer !== gUser)
             json = json + "\"user_2\":\""+gUser+"\",";
         else
             json = json + "\"user_2\":\""+gRemoteUser+"\",";
+
         if(reset)
             json = json + "\"user_down\":\"@@@@@\"";
         else
@@ -1955,47 +1969,13 @@ function btnPlayAgain(reset){
         hubConnection.invoke("PlayAgain", json)
         .then(datax => {
             var data = JSON.parse(datax);
-            // you can access your data here
+             retValue = data;
             console.log("btnPlayAgain:", data)
         })
     }
+    */
 }
 
-/*
-function deepSixIt(arr){
-    console.log("deepSixIt:");
-    var json = "{";    
-    if(isIssuer === gUser)
-    {
-        json = json + "\"game_id\" : \""+gUser+"|"+gRemoteUser+"\",";
-        json = json + "\"ship_array\" : \"ships_remote\",";
-    }
-    else
-    {
-        json = json + "\"game_id\" : \""+gRemoteUser+"|"+gUser+"\",";
-        json = json + "\"ship_array\" : \"ships\",";
-    }
-    json = json + "\"user\" : \""+gUser+"\",";
-    json = json + "\"remove\" : [";
-    
-    $.each(arr, function (i, obj)
-    {
-        if(i>0)
-            json = json + ",";
-        json = json + "\""+obj+"\"";
-    });
-
-    json = json + "]";
-    json = json + "}";
-
-    hubConnection.invoke("DeepSixIt", json)
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        console.log("HUB Response:", data)
-    })
-}
-*/
 function confirm(answer){
     //console.log("confirm", answer);
 
@@ -2018,7 +1998,7 @@ function confirm(answer){
 function PlayAgain(){
     //console.log("PlayAgain", current_status);
 
-    clearGameboard();
+    //clearGameboard();
 
     BuildTheFleet(true);
     var jx_them = buildFleetJSON();
@@ -2026,12 +2006,18 @@ function PlayAgain(){
     BuildTheFleet();
     var jx_you = buildFleetJSON();
 
+    //console.log("jx_them", jx_them);
+    //console.log("jx_you", jx_you);
+
     var json_them = JSON.stringify( JSON.parse(jx_them).ships);
     var json_you = JSON.stringify(  JSON.parse(jx_you).ships);
 
+    //console.log("json_them", json_them);
+    //console.log("json_you", json_you);
     
     var json = "{";    
     json = json + "\"user\": \""+gUser+"\",";
+    json = json + "\"user_remote\": \""+gRemoteUser+"\",";
     json = json + "\"game_id\":\""+current_status.requests[0].game_id+"\",";
     if(isIssuer !== gUser)  //Not issuer
     {
@@ -2051,7 +2037,7 @@ function PlayAgain(){
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
-        console.log("HUB Response:", data)
+        //console.log("HUB Response:", data)
     })
 }
 
@@ -2085,26 +2071,6 @@ function UpdateField(fieldname, value, value_type)
         // you can access your data here
         console.log("HUB Response:", data)
     })
-    alert("UpdateField");
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'updatefield',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-    });    
-    */
 }
 
 
