@@ -17,7 +17,6 @@ H:\GIT\Battleship\Battleship\Server\BSServer\bin\Debug\netcoreapp2.1\BSServer.ru
 H:\GIT\Battleship\Battleship\Server\BSServer\bin\Debug\netcoreapp2.1\BSServer.runtimeconfig.dev.json
 H:\GIT\Battleship\Battleship\Server\BSServer\bin\Debug\netcoreapp2.1\BSServer.dll
 H:\GIT\Battleship\Battleship\Server\BSServer\bin\Debug\netcoreapp2.1\BSServer.pdb
-H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.csprojAssemblyReference.cache
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.csproj.CoreCompileInputs.cache
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.RazorAssemblyInfo.cache
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.RazorAssemblyInfo.cs
@@ -26,3 +25,4 @@ H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.As
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.RazorTargetAssemblyInfo.cache
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.dll
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.pdb
+H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.csprojAssemblyReference.cache

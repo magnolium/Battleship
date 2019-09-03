@@ -17,7 +17,7 @@ $(document).ready(function () {
     });
 
     hubConnection.on("UpdateGameBoard", data => {
-        console.log("JV-UpdateGameBoard:", gUser, gRemoteUser, data);
+        //console.log("JV-UpdateGameBoard:", gUser, gRemoteUser, data);
         clientId = data;
         getStatus();        
     });
@@ -59,6 +59,20 @@ function Initialize()
         device_mode = "PC";
     
             
+    window.mobilecheck = function() {
+      var check = false;
+      (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+      if(check);
+        device_mode = "MOB";
+    };
+
+    window.mobileAndTabletcheck = function() {
+      var check = false;
+      (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
+      if(check);
+        device_mode = "TAB";
+    };
+
     console.log("SITE-LOAD", device_mode);
     if(device_mode !== "PC")
         OFFSET_FLT = 0;
@@ -894,30 +908,6 @@ function btnRequest(mode, userid) //
         
         gotoGameboard();        
     })
-
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'submit',
-        'data': jx,
-        'type' : "POST",
-        'success': function (data)
-        {   
-            //console.log("data", data);
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in btnRequest(): '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        console.log('COMPLETED', dataz);
-        postApiAction("FETCHGAMEBOARD");
-        
-        gotoGameboard();
-    });
-    */
 }
 
 function btnPlayGame() // 
@@ -1021,60 +1011,6 @@ function validateLogin(type){
             $("#hdr-cfg-profile").html($("#login_username").val());
 
         })
-
-        /*       
-        $.when( $.ajax({
-            'url': apiroot + 'validate',
-            'data': json,
-            'type' : "POST",
-            'success': function (data)
-            {   
-                 status = data.response;
-            },
-            'error': function (jqXHRX, textStatus, errorThrown)
-            {
-                console.log('An error occurred in the validateLogin: '+ textStatus, json);
-            },
-            'dataType': 'json',
-            }
-        )).then(function (dataz)   //ensures this bit runs after the view list is completed
-        {
-            console.log('VALIDATED', status, dataz);
-
-            if(status === "OK" || status === "PRESENT")
-            {
-                localStorage.setItem("game_user", $("#login_username").val());           
-                localStorage.setItem("game_pswd", $("#login_password").val());           
-                
-                gUser = $("#login_username").val();
-
-                var modal = document.getElementById('loginModal');
-                var modalFrm = document.getElementById('loginForm');
-
-                //console.log('STYLES:', modal.style.display);
-
-                modal.style.display = "none";
-                modalFrm.style.display = "none";
-
-                //Need to check if we have a game-in-progress (GIP)
-                buildHitZones(0);
-
-                $("#hdr-cfg-local").html(gUser);
-                $("#hdr-cfg-remote").html(gRemoteUser);
-                console.log("PAUSE OFF");
-                pauseClock = false;        
-            }
-            else
-            {
-                console.log('STATUS:', status);
-                if(status=="USEREXISTS")$("#messageid").html("That username already exists");
-                if(status=="PSWDFAIL")$("#messageid").html("Incorrect password");
-            }
-
-            $("#hdr-cfg-profile").html($("#login_username").val());
-
-        });
-        */
     }    
 }
 
@@ -1090,9 +1026,9 @@ function playGame(user){
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
-        console.log("HUB Response:", data)
+        console.log("playGame:", data)
+        postApiAction("ISPLAYING");
     })
-    alert("PlayGame");
     /*
     $.when( $.ajax({
         'url': apiroot + 'startgame',
@@ -1265,130 +1201,6 @@ function postApiAction(cmd, info=""){
         $("#wait").hide(); 
     })
 
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'action',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        //PLAY_MODE = false;
-        if(dataz.action === "ISPLAYING" && dataz.response === "YES")
-        {//If no fleet deployed then deploy it
-            //console.log("postApiAction-XXXX", retValue.details);
-            
-            if( retValue.details.ships_remote.length === 0 )
-            {
-                //console.log("postApiAction-ZZZZ");
-                
-                clearGameboard();
-                //REQUEST_MODE = false;
-
-                BuildTheFleet();   
-                
-                hasShips = true;
-
-                var jx = buildFleetJSON(false);
-                postApiAction("UPDATEGAMEBOARD", jx);
-                //console.log("postApiAction-FETCHGAMEBOARD-1");
-                hitcount = 0;
-                localHitcount = 0;
-            }
-            else
-            {
-                //console.log("postApiAction-FETCHGAMEBOARD-2");
-                //Get the ships data and load into gameboard
-                //postApiAction("FETCHGAMEBOARD");
-                //PLAY_MODE = true;
-                gotoGameboard();
-            }
-        }
-        else
-        {
-            //Clear the gameboard
-            //console.log("Clear the board @1128 with action/command:", dataz.action, cmd);
-
-            if(dataz.action != "REQ" && 
-                dataz.action != "WAIT" && 
-                dataz.action != "PLAY" && 
-                cmd != "UPDATEHITLIST" && 
-                cmd != "GETREMOTEGAMEBOARD")
-            {
-                //clearGameboard();
-            }
-        }
-
-        if(cmd === "ENDGAME")
-        {
-            clearGameboard();
-        }
-
-        if(cmd === "UPDATEGAMEBOARD")
-        {
-            //console.log("postApiAction-FETCHGAMEBOARD-3", dataz.ships);
-            
-            getuserinfo();
-            //getuserinfo(true);
-
-            var idd = "#id_"+lastTab;
-            //console.log("remove active from", idd);
-            
-            $(idd).removeClass("active");
-            $('#id_local').addClass("active");
-
-            OnSelectedTab("local");
-
-            //Populate the gameboard
-            
-            if(isIssuer === gUser)
-            {
-                //console.log("postApiAction-ISSUER", dataz);
-                $.each(dataz.ships, function (i, obj)
-                {
-                    var node = svg.selectAll((".sea."+obj.cell));
-                    node[0][0].setAttribute("href", obj.img);
-                });           
-
-                //Populate the gameboard
-                $.each(dataz.ships, function (i, obj)
-                {
-                    var node = svg.selectAll((".hit."+obj.cell));
-                    node[0][0].setAttribute("latent_img", obj.img);
-                    node[0][0].setAttribute("isship", obj.isship);
-                });    
-
-            }
-            else
-            {
-                //console.log("postApiAction-REQUESTED", dataz);
-                $.each(dataz.ships_remote, function (i, obj)
-                {
-                    var node = svg.selectAll((".sea."+obj.cell));
-                    node[0][0].setAttribute("href", obj.img);
-                });           
-
-                //Populate the gameboard
-                $.each(dataz.ships_remote, function (i, obj)
-                {
-                    var node = svg.selectAll((".hit."+obj.cell));
-                    node[0][0].setAttribute("latent_img", obj.img);
-                    node[0][0].setAttribute("isship", obj.isship);
-                });                 
-            }
-        }
-        $("#wait").hide(); 
-    });    
-    */
 }
 
 function buildFleetJSON(HASBRACKETS=true){
@@ -1446,32 +1258,6 @@ function UpdateHitlistJSON(cell){
     json = json + "\"columns\" : " + columns+",";
     json = json + "\"rows\" : " + rows +",";
     json = json + "\"cell\" : \"" + cell + "\"}";
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'hitlist',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        //console.log("Update done", dataz);
-        TURN_CHANGE = true;
-
-        getStatus();
-        //Reconcile the gameboard from the hitlist
-        pauseClock = false;
-
-    });
-    */
     
     hubConnection.invoke("UpdateHitList", json)
     .then(datax => {
@@ -1635,14 +1421,11 @@ function getStatus(){
 
                     //AUDIO NOTIFICATION CONTROL FOR OPPOSITION
                     
-                    //console.log("pShp:", pShp);
-                    //console.log("prvpShp:", prvpShp);
                     $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
                     {
                         var prvObj = prvpShp[i];
                         if(obj.hit==="Y")
                         {
-                            console.log("HIT:", obj.cell, prvObj.cell);
                             if(prvObj.hit==="N")
                             {
                                 console.log("**HIT**");
@@ -2034,13 +1817,15 @@ function getuserinfo(fromRemote=false){
             var x = Number(nodeLocal.attr("x"))+20;
             var y = Number(nodeLocal.attr("y"))+20;
 
+            console.log("HIT-AREA", x, y);
+
             svg.selectAll("circle").remove();
             var ex = createSVGExplosion();
             ex.attr("cx", x).attr("cy", y).transition().duration(1000).attr("r", "100").transition().duration(1000).attr("r", "0");
 
             boom();
             BattleshipDown(true);
-            SinkTheShip(cell);
+            //SinkTheShip(cell);
         }        
 
 
@@ -2085,48 +1870,26 @@ function OnGameboardClick(){
 }
 
 function BattleshipDown(reset){
-    //console.log("BattleshipDown");
+    console.log("BattleshipDown");
 
     var json = "{";    
     json = json + "\"user_1\":\""+isIssuer+"\",";
+    
     if(isIssuer !== gUser)
         json = json + "\"user_2\":\""+gUser+"\",";
     else
         json = json + "\"user_2\":\""+gRemoteUser+"\",";
-    if(reset)
-        json = json + "\"user_down\":\"@@@@\"";
-    else
-        json = json + "\"user_down\":\""+gRemoteUser+"\"";
+    
+    json = json + "\"user_down\":\"@@@@\"";
+
     json = json + "}";
 
 
     hubConnection.invoke("BattleshipDown", json)
     .then(datax => {
         var data = JSON.parse(datax);
-        // you can access your data here
-        console.log("HUB Response:", data)
+        console.log("BattleshipDown:", data)
     })
-
-    alert("BattleshipDown");
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'battleshipdown',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-    });
-    */
 }
 
 function ping(){
@@ -2193,45 +1956,36 @@ function btnPlayAgain(reset){
         .then(datax => {
             var data = JSON.parse(datax);
             // you can access your data here
-            console.log("HUB Response:", data)
+            console.log("btnPlayAgain:", data)
         })
-        alert("btnPlayAgain");
-        /*
-        $.when( $.ajax({
-            'url': apiroot + 'playagain',
-            'data': json,
-            'type' : "POST",
-            'success': function (data)
-            {
-                retValue = data;
-            },
-            'error': function (jqXHRX, textStatus, errorThrown)
-            {
-                console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-            },
-            'dataType': 'json',
-            }
-        )).then(function (dataz)   //ensures this bit runs after the view list is completed
-        {
-        });    
-        */
     }
 }
 
-function deepSixIt(){
-
+/*
+function deepSixIt(arr){
+    console.log("deepSixIt:");
     var json = "{";    
-    json = json + "\"userid\" : \""+gUser+"\",";
     if(isIssuer === gUser)
     {
-        json = json + "\"issuer\" : \"Y\",";
-        json = json + "\"game_id\" : \""+gUser+"|"+gRemoteUser+"\"";
+        json = json + "\"game_id\" : \""+gUser+"|"+gRemoteUser+"\",";
+        json = json + "\"ship_array\" : \"ships_remote\",";
     }
     else
     {
-        json = json + "\"issuer\" : \"N\",";
-        json = json + "\"game_id\" : \""+gRemoteUser+"|"+gUser+"\"";
+        json = json + "\"game_id\" : \""+gRemoteUser+"|"+gUser+"\",";
+        json = json + "\"ship_array\" : \"ships\",";
     }
+    json = json + "\"user\" : \""+gUser+"\",";
+    json = json + "\"remove\" : [";
+    
+    $.each(arr, function (i, obj)
+    {
+        if(i>0)
+            json = json + ",";
+        json = json + "\""+obj+"\"";
+    });
+
+    json = json + "]";
     json = json + "}";
 
     hubConnection.invoke("DeepSixIt", json)
@@ -2240,29 +1994,8 @@ function deepSixIt(){
         // you can access your data here
         console.log("HUB Response:", data)
     })
-    alert("deepSixIt");
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'deepsixit',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-        pauseClock = false;
-    });
-    */  
 }
-
+*/
 function confirm(answer){
     //console.log("confirm", answer);
 
@@ -2314,32 +2047,12 @@ function PlayAgain(){
 
     //console.log(json);
 
-    hubConnection.invoke("PlayAgain", json)
+    hubConnection.invoke("RestartGame", json)
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
         console.log("HUB Response:", data)
     })
-    alert("PlayAgain");
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'restartgame',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {
-            retValue = data;
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the postApiAction: '+ textStatus, errorThrown);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after the view list is completed
-    {
-    });    
-    */
 }
 
 function UpdateField(fieldname, value, value_type)
@@ -2508,6 +2221,24 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
 }]);
 
 
+myApp.factory('Server', ['$http', function ($http) {
+  return {
+
+    get: function(url) {
+
+      return $http.get(url);
+    },
+    
+    post: function(url, pdata) {
+      return $http.post(url, pdata);
+    },
+
+
+  };
+
+}]);
+
+
 function btnTest(thx){
     //pauseClock = true;
     //BuildTheFleet(false);
@@ -2535,7 +2266,8 @@ function SinkTheShip(){
     //var ship_list = current_status.requests[0].ships.sort(function(a, b){return b.ship_part > a.ship_part;});
     var ship_list = current_status.requests[0].ship_hits;
     //filter the ship from the fleet
-    
+    console.log("SinkTheShip:", ship_list);
+
     if(ship_list != undefined)
     {
         $.each(ship_list, function (i, obj) 
@@ -2547,23 +2279,5 @@ function SinkTheShip(){
         });
     }
     
-    deepSixIt();
+    //deepSixIt(ship_list);
 }
-
-
-myApp.factory('Server', ['$http', function ($http) {
-  return {
-
-    get: function(url) {
-
-      return $http.get(url);
-    },
-    
-    post: function(url, pdata) {
-      return $http.post(url, pdata);
-    },
-
-
-  };
-
-}]);

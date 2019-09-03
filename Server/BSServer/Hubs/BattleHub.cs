@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -176,7 +177,7 @@ namespace SignalR.Server.Hubs
                 if (views.Count() == 0)
                 {
                     sb.Clear();
-                    sb.AppendFormat("{{\"game_id\":\"{0}\", \"next_player\" : \"{1}\", \"user_1\":\"{2}\",\"user_2\":\"{3}\", \"issuer\": \"{4}\",\"action\":\"{5}\", {6}, {7},\"ships_remote\": [], \"hits_remote\": [], \"winner\":\"@@@@\", \"ship_down_for\":\"@@@@\"}}", idd_1, user_remote, user_local, user_remote, user_local, action, sbx.ToString(), sbk.ToString());
+                    sb.AppendFormat("{{\"game_id\":\"{0}\", \"next_player\" : \"{1}\", \"user_1\":\"{2}\",\"user_2\":\"{3}\", \"issuer\": \"{4}\",\"action\":\"{5}\", {6}, {7},\"ships_remote\": [], \"hits_remote\": [], \"winner\":\"@@@@\", \"ship_down_for\":\"@@@@\", \"ship_cell\":\"\"}}", idd_1, user_remote, user_local, user_remote, user_local, action, sbx.ToString(), sbk.ToString());
                     BsonDocument bsdx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
                     gamers.Insert(bsdx);
                 }
@@ -605,6 +606,7 @@ namespace SignalR.Server.Hubs
 
                 //UPDATE HIT
                 bool this_is_a_hit_cell = false;
+                bool this_is_a_sunked_ship = false;
 
                 if (game[0].GetElement("issuer").Value.ToString() == user_1)
                     ships = (BsonArray)game[0].GetElement("ships_remote").Value;
@@ -618,9 +620,9 @@ namespace SignalR.Server.Hubs
                     if (qx.GetElement("cell").Value.ToString() == cellx)
                     {
                         if (game[0].GetElement("issuer").Value.ToString() == user_1)
-                            sbQueryX.AppendFormat("{{ $set: {{ \"ships_remote.{0}.hit\" : \"Y\" }} }}", index);
+                            sbQueryX.AppendFormat("{{ $set: {{ \"ships_remote.{0}.hit\" : \"Y\", \"ship_cell\" : \"{1}\" }} }}", index, cellx);
                         else
-                            sbQueryX.AppendFormat("{{ $set: {{ \"ships.{0}.hit\" : \"Y\" }} }}", index);
+                            sbQueryX.AppendFormat("{{ $set: {{ \"ships.{0}.hit\" : \"Y\", \"ship_cell\" : \"{1}\"  }} }}", index, cellx);
 
                         var qry = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
                         UpdateDocument updateDocX = new UpdateDocument(qry);
@@ -631,6 +633,27 @@ namespace SignalR.Server.Hubs
                     index++;
                 }
 
+                /////////////////////////////////////////////////////////////
+                //SINK THIS SHIP
+                /////////////////////////////////////////////////////////////
+                string hitcell = bsd.GetElement("cell").Value.ToString();
+
+                List<BsonDocument> shipx = new List<BsonDocument>();
+
+                int ix = ships.Where(b => ((BsonDocument)b).GetElement("cell").Value.ToString() == hitcell).ToList().Count();
+
+                if (ix > 0)
+                {
+                    var part = ships.Where(b => ((BsonDocument)b).GetElement("cell").Value.ToString() == hitcell).ToList()[0].ToString();
+                    BsonDocument bsq = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(part);
+                    var hit = bsq.GetElement("ship_part").Value.ToString().Split('_');
+                    shipx = ships.Select(q => ((BsonDocument)q)).Where(a => a.GetElement("ship_part").Value.ToString().Substring(0, 1) == hit[0]).ToList();
+                    var count = shipx.Where(s => s.GetElement("hit").Value.ToString() == "Y").ToList().Count() + 1;
+                    if (count.ToString() == hit[2])
+                        this_is_a_sunked_ship = true;
+                }
+                /////////////////////////////////////////////////////////////
+                ///
                 //Retrieve your hitlist
                 BsonArray bsa = null;
 
@@ -682,7 +705,66 @@ namespace SignalR.Server.Hubs
                 BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
                 UpdateDocument updateDoc = new UpdateDocument(queryx);
                 gamersDoc.Update(queryDoc, updateDoc, muo);
+
+                if (this_is_a_sunked_ship)
+                {
+                    sbQueryX.Clear();
+                    sbQueryX.AppendFormat("{{ $set: {{ ship_down_for : \"{0}\"  }} }}", user_2);
+                    queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                    updateDoc = new UpdateDocument(queryx);
+                    gamersDoc.Update(queryDoc, updateDoc, muo);
+
+                    sbQueryX.Clear();
+                    sbQueryX.AppendFormat("{{ $set: {{ ship_array : [");
+
+                    bool comma = false;
+                    foreach (BsonDocument bsdx in shipx)
+                    {
+                        BsonElement bs1 = new BsonElement("hit", "Y");
+                        BsonElement bs2 = new BsonElement("sunk", "Y");
+                        bsdx.SetElement(bs1);
+                        bsdx.SetElement(bs2);
+
+                        if (comma)
+                            comma = true;
+                        else
+                            sbQueryX.AppendFormat(",");
+
+                        sbQueryX.AppendFormat("{0}", bsdx.ToString());
+                    }
+                    sbQueryX.AppendFormat("] }} }}");
+                    queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                    updateDoc = new UpdateDocument(queryx);
+                    gamersDoc.Update(queryDoc, updateDoc, muo);
+
+                    //UPDATE CORE RECORD
+                    foreach (BsonDocument bsdx in shipx)
+                    {
+                        index = 0;
+                        foreach (BsonValue bv in ships)
+                        {
+                            sbQueryX.Clear();
+                            BsonDocument qx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(bv.ToString());
+                            if (qx.GetElement("cell").Value.ToString() == bsdx.GetElement("cell").Value.ToString())
+                            {
+                                if (game[0].GetElement("issuer").Value.ToString() == user_1)
+                                    sbQueryX.AppendFormat("{{ $set: {{ \"ships_remote.{0}.hit\" : \"Y\", \"ships_remote.{0}.sunk\" : \"Y\" }} }}", index);
+                                else
+                                    sbQueryX.AppendFormat("{{ $set: {{ \"ships.{0}.hit\" : \"Y\", \"ships.{0}.sunk\" : \"Y\"  }} }}", index);
+
+                                var qry = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                                UpdateDocument updateDocX = new UpdateDocument(qry);
+                                gamersDoc.Update(queryDoc, updateDocX, muo);
+                                this_is_a_hit_cell = true;
+                                break;
+                            }
+                            index++;
+                        }
+                    }
+                }
+
                 gamers = gamersDoc.Find(queryDoc);
+
                 if (gamers != null)
                 {
                     List<BsonDocument> gameboard = gamers.ToList();
@@ -818,28 +900,244 @@ namespace SignalR.Server.Hubs
             return sbx.ToString();
         }
 
-        public string BattleshipDown(string json)
+        public string BattleshipDown(string data)
         {
-            Debug.WriteLine("BATTLESHIPDOWN: " + json);
-            return ("{}");
+            BsonDocument bsd = ConvertPostData(data);
+
+            ///////////////////////////////////////////////////////
+            // ASSIGN THE ATTRIBUTES
+            ///////////////////////////////////////////////////////
+            string user1 = bsd.GetElement("user_1").Value.ToString();
+            string user2 = bsd.GetElement("user_2").Value.ToString();
+            string down = bsd.GetElement("user_down").Value.ToString();
+
+            StringBuilder sb = new StringBuilder();
+            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
+            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_collection = "gameboard";
+
+            sb.AppendFormat("{{\"game_id\":\"{0}|{1}\"}}", user1, user2);
+
+            GetDB db = new GetDB(s_serverip, s_Database);
+            db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
+
+            MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>("gamerboard");
+            BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+            QueryDocument queryDoc = new QueryDocument(queryX);
+            MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
+
+            StringBuilder sbx = new StringBuilder();
+            sbx.AppendFormat("{{}}");
+            if (gamers != null)
+            {
+                List<BsonDocument> gameboard = gamers.ToList();
+                if (gameboard.Count() > 0)
+                {
+                    StringBuilder sbQueryX = new StringBuilder();
+                    sbQueryX.AppendFormat("{{ $set: {{ ship_down_for : \"{0}\" }} }}", down);
+                    MongoUpdateOptions muo = new MongoUpdateOptions();
+                    muo.Flags = UpdateFlags.Multi;
+                    BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                    UpdateDocument updateDoc = new UpdateDocument(queryx);
+                    gamersDoc.Update(queryDoc, updateDoc, muo);
+                }
+
+            }
+            return sbx.ToString();
         }
 
-        public string PlayAgain(string json)
+        public string RestartGame(string data)
         {
-            Debug.WriteLine("PLAYAGAIN: " + json);
-            return ("{}");
+            BsonDocument bsd = ConvertPostData(data);
+
+            ///////////////////////////////////////////////////////
+            // ASSIGN THE ATTRIBUTES
+            ///////////////////////////////////////////////////////
+            string gameid = bsd.GetElement("game_id").Value.ToString();
+            string userid = bsd.GetElement("user").Value.ToString();
+            BsonArray ships_remote = (BsonArray)bsd.GetElement("ships_remote").Value;
+            BsonArray ships = (BsonArray)bsd.GetElement("ships").Value;
+
+            StringBuilder sb = new StringBuilder();
+            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
+            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_collection = "gameboard";
+
+            sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);
+
+            GetDB db = new GetDB(s_serverip, s_Database);
+            db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
+
+            MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>("gamerboard");
+            BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+            QueryDocument queryDoc = new QueryDocument(queryX);
+            MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
+
+            StringBuilder sbx = new StringBuilder();
+            sbx.AppendFormat("{{}}");
+            if (gamers != null)
+            {
+                StringBuilder sbQueryX = new StringBuilder();
+                sbQueryX.AppendFormat("{{ $set: {{ ships : {0}, hits : [], ships_remote : {1},  hits_remote : [], ship_down_for : \"@@CLEARBOARD@@\"}} }}", ships, ships_remote);
+                MongoUpdateOptions muo = new MongoUpdateOptions();
+                muo.Flags = UpdateFlags.Multi;
+                BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                UpdateDocument updateDoc = new UpdateDocument(queryx);
+                gamersDoc.Update(queryDoc, updateDoc, muo);
+
+            }
+
+            return bsd.ToString();
         }
 
-        public string DeepSixIt(string json)
+        public string DeepSixIt(string data)
         {
-            Debug.WriteLine("DEEPSIXIT: " + json);
-            return ("{}");
+
+            BsonDocument bsd = ConvertPostData(data);
+
+            ///////////////////////////////////////////////////////
+            // ASSIGN THE ATTRIBUTES
+            ///////////////////////////////////////////////////////
+            string gameid = bsd.GetElement("game_id").Value.ToString();
+            string ship_array = bsd.GetElement("ship_array").Value.ToString();
+            BsonArray bsa = (BsonArray)bsd.GetElement("remove").Value;
+
+            StringBuilder sb = new StringBuilder();
+            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
+            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_collection = "gameboard";
+
+            sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);
+
+            GetDB db = new GetDB(s_serverip, s_Database);
+            db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
+
+            MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>("gamerboard");
+            BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+            QueryDocument queryDoc = new QueryDocument(queryX);
+            MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
+
+            StringBuilder sbx = new StringBuilder();
+            sbx.AppendFormat("{{}}");
+            if (gamers != null)
+            {
+                List<BsonDocument> gameboard = gamers.ToList();
+                if (gameboard.Count() > 0)
+                {
+                    BsonArray bsaShip = (BsonArray)gameboard[0].GetElement(ship_array).Value;
+                    List<BsonValue> vNodeX = bsaShip.ToList();
+                    vNodeX.Reverse();
+                    foreach (BsonValue bsv in bsa)
+                    {
+                        int q = vNodeX.Count() - 1;
+                        foreach (BsonDocument bs in vNodeX)
+                        {
+                            if (bs.GetElement("cell").Value.ToString() == bsv.ToString())
+                            {
+                                string str = bs.GetElement("img").Value.ToString();
+                                string pth = Path.GetFileName(str);
+                                string img = str.Replace(pth, "bs_sea.png");
+                                bs.Set(1, (BsonValue)"1");
+                                bs.Set(2, (BsonValue)img);
+                            }
+                            q--;
+                        }
+                    }
+                    sbx.Clear();
+                    sbx.AppendFormat("{{\"remaining\": [");
+
+                    BsonArray bsax = new BsonArray();
+                    int i = 0;
+                    foreach (BsonDocument bs in vNodeX)
+                    {
+                        if (i > 0)
+                            sbx.AppendFormat(",");
+                        sbx.AppendFormat("{0}", bs.ToString());
+                        i++;
+                        bsax.Add(bs);
+                    }
+                    sbx.AppendFormat("]}}");
+
+                    StringBuilder sbQueryX = new StringBuilder();
+                    if (ship_array == "ships_remote")
+                        sbQueryX.AppendFormat("{{ $set: {{ ships_remote : {0} }} }}", bsax);
+                    else
+                        sbQueryX.AppendFormat("{{ $set: {{ ships : {0} }} }}", bsax);
+
+                    MongoUpdateOptions muo = new MongoUpdateOptions();
+                    muo.Flags = UpdateFlags.Multi;
+                    BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                    UpdateDocument updateDoc = new UpdateDocument(queryx);
+                    gamersDoc.Update(queryDoc, updateDoc, muo);
+
+                }
+            }
+
+            return sbx.ToString();
         }
 
-        public string UpdateField(string json)
+        private BsonDocument ConvertPostData(string data)
         {
-            Debug.WriteLine("UPDATEFIELD: " + json);
-            return ("{}");
+            BsonDocument bsd = null;
+            try
+            {
+                bsd = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(data);
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine("ConvertPostData" + e.Message);
+            }
+            return bsd;
+        }
+
+        public string UpdateField(string data)
+        {
+            HttpResponseMessage resp = null;
+
+            BsonDocument bsd = ConvertPostData(data);
+
+            ///////////////////////////////////////////////////////
+            // ASSIGN THE ATTRIBUTES
+            ///////////////////////////////////////////////////////
+            string value_type = bsd.GetElement("value_type").Value.ToString();
+            string gameid = bsd.GetElement("game_id").Value.ToString();
+            string field = bsd.GetElement("field").Value.ToString();
+            var value = bsd.GetElement("value").Value;
+
+            StringBuilder sb = new StringBuilder();
+            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
+            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_collection = "gameboard";
+
+            sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);
+
+            GetDB db = new GetDB(s_serverip, s_Database);
+            db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
+
+            MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>("gamerboard");
+            BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+            QueryDocument queryDoc = new QueryDocument(queryX);
+            MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
+
+            StringBuilder sbx = new StringBuilder();
+            sbx.AppendFormat("{{}}");
+            if (gamers != null)
+            {
+                StringBuilder sbQueryX = new StringBuilder();
+                if (value_type == "string") sbQueryX.AppendFormat("{{ $set: {{ \"{0}\" : \"{1}\" }} }}", field, (string)value);
+                if (value_type == "int") sbQueryX.AppendFormat("{{ $set: {{ \"{0}\" : {1} }} }}", field, (int)value);
+                if (value_type == "bool") sbQueryX.AppendFormat("{{ $set: {{ \"{0}\" : {1} }} }}", field, (bool)value);
+
+                MongoUpdateOptions muo = new MongoUpdateOptions();
+                muo.Flags = UpdateFlags.Multi;
+                BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                UpdateDocument updateDoc = new UpdateDocument(queryx);
+                gamersDoc.Update(queryDoc, updateDoc, muo);
+            }
+
+            resp = new HttpResponseMessage { Content = new StringContent(bsd.ToString(), System.Text.Encoding.UTF8, "application/json") };
+
+            return bsd.ToString();
         }
 
         public void UpdateGameBoard(string user, string remote)
