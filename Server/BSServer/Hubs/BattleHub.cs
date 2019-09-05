@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Microsoft.AspNetCore.SignalR;
@@ -17,8 +18,21 @@ namespace SignalR.Server.Hubs
         public MongoClient mClient = null;
         public MongoServer globalserver = null;
         public MongoDatabase dbMongoREAD = null;
-        public MongoDatabase dbChartInfo = null;
-        private static int accum = 0;
+
+        public BattleHub()
+        {
+            var path = Environment.CurrentDirectory;
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(path)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            this._configurationRoot = builder.Build();
+
+            var look = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+        }
+
+        public IConfigurationRoot _configurationRoot { get; private set; }
 
         public string PlayerSetup(string player)
         {
@@ -54,8 +68,8 @@ namespace SignalR.Server.Hubs
                 string userid = bsdx.GetElement("userid").Value.ToString();
 
 
-                string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-                string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+                string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+                string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
                 string s_collection = "gamers";
 
                 sb.Clear();
@@ -160,8 +174,8 @@ namespace SignalR.Server.Hubs
 
             try
             {
-                string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-                string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+                string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+                string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
                 string s_collection = "gamerboard";
 
                 sb.AppendFormat("{{\"server\":\"{0}\", \"database\":\"{1}\",\"user_1\":\"{2}\",\"user_2\":\"{3}\",\"action\":\"{4}\" }}", s_serverip, s_Database, user_local, user_remote, action);
@@ -214,8 +228,8 @@ namespace SignalR.Server.Hubs
             string login_type = bsd.GetElement("type").Value.ToString();
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gamers";
 
             sb.AppendFormat("{{\"game_id\":\"{0}\", \"game_pswd\":\"{1}\", \"type\":\"gamers\"}}", userid, password);
@@ -288,8 +302,8 @@ namespace SignalR.Server.Hubs
                 string user_1 = bsd.GetElement("user1").Value.ToString();
                 string user_2 = bsd.GetElement("user2").Value.ToString();
 
-                string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-                string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+                string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+                string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
                 string s_collection = "gamerboard";
 
                 sb.AppendFormat("{{ \"game_id\" : \"{0}|{1}\", \"action\" : \"REQ\" }}", user_1, user_2);
@@ -343,8 +357,8 @@ namespace SignalR.Server.Hubs
 
 
             // CONNECTION ///////////////////////////////////////////////////////////////////////////////////////////////////
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gamerboard";
             GetDB db = new GetDB(s_serverip, s_Database);
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -580,8 +594,8 @@ namespace SignalR.Server.Hubs
                 string user_2 = bsd.GetElement("user2").Value.ToString();
                 string command = bsd.GetElement("command").Value.ToString();
 
-                string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-                string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+                string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+                string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
                 string s_collection = "gamerboard";
 
                 sb.AppendFormat("{{ $or : [ {{\"game_id\":\"{0}|{1}\"}}, {{\"game_id\":\"{1}|{0}\"}} ] }}", user_1, user_2);
@@ -828,8 +842,8 @@ namespace SignalR.Server.Hubs
             //string remoteid = bsd.GetElement("remote").Value.ToString();
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gamerboard";
 
             sb.AppendFormat("{{ $or : [ {{\"user_1\":\"{0}\"}}, {{\"user_2\":\"{0}\"}} ] }}", userid);
@@ -920,8 +934,8 @@ namespace SignalR.Server.Hubs
             string down = bsd.GetElement("user_down").Value.ToString();
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gameboard";
 
             sb.AppendFormat("{{\"game_id\":\"{0}|{1}\"}}", user1, user2);
@@ -967,8 +981,8 @@ namespace SignalR.Server.Hubs
             BsonArray ships = (BsonArray)bsd.GetElement("ships").Value;
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gameboard";
 
             sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);
@@ -1011,8 +1025,8 @@ namespace SignalR.Server.Hubs
             BsonArray bsa = (BsonArray)bsd.GetElement("remove").Value;
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gameboard";
 
             sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);
@@ -1113,8 +1127,8 @@ namespace SignalR.Server.Hubs
             var value = bsd.GetElement("value").Value;
 
             StringBuilder sb = new StringBuilder();
-            string s_serverip = "localhost:27017"; // System.Configuration.ConfigurationManager.AppSettings["battleship_server"];
-            string s_Database = "battleship"; // System.Configuration.ConfigurationManager.AppSettings["battleship_db"];
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gameboard";
 
             sb.AppendFormat("{{\"game_id\":\"{0}\"}}", gameid);

@@ -13,13 +13,15 @@ namespace SignalR.Server
 {
     public class Startup
     {
+        public IConfigurationRoot _configurationRoot { get; private set; }
+        public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -45,6 +47,15 @@ namespace SignalR.Server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            //var builder = new ConfigurationBuilder()
+            //    .SetBasePath(env.ContentRootPath)
+            //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            //    .AddEnvironmentVariables();
+
+            //this._configurationRoot = builder.Build();
+
+            //var look = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+
             if (env.IsDevelopment())
             {
                 //app.UseBrowserLink();

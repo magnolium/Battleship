@@ -25,3 +25,4 @@ H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.As
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.RazorTargetAssemblyInfo.cache
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.dll
 H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.pdb
+H:\GIT\Battleship\Battleship\Server\BSServer\obj\Debug\netcoreapp2.1\BSServer.csprojAssemblyReference.cache

@@ -17,10 +17,12 @@
     "SignalR.Server": {
       "commandName": "Project",
       "launchBrowser": false,
+
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:5000"
+      "applicationUrl": "http://localhost:5000",
+      "cors_domain": "http://localhost"
     }
   }
 }
