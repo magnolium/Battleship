@@ -18,21 +18,21 @@ namespace SignalR.Server.Hubs
         public MongoClient mClient = null;
         public MongoServer globalserver = null;
         public MongoDatabase dbMongoREAD = null;
+        static public IConfigurationRoot _configurationRoot = null;
 
         public BattleHub()
         {
-            var path = Environment.CurrentDirectory;
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(path)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddEnvironmentVariables();
+            if (_configurationRoot == null)
+            {
+                var path = Environment.CurrentDirectory;
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(path)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddEnvironmentVariables();
 
-            this._configurationRoot = builder.Build();
-
-            var look = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+                _configurationRoot = builder.Build();
+            }
         }
-
-        public IConfigurationRoot _configurationRoot { get; private set; }
 
         public string PlayerSetup(string player)
         {
@@ -829,7 +829,7 @@ namespace SignalR.Server.Hubs
             {
                 Trace.WriteLine("STATUS-POST-ERROR" + e.Message);
             }
-
+            
             string userid = "";
 
             if (bsd.Contains("user"))
@@ -863,6 +863,7 @@ namespace SignalR.Server.Hubs
 
             sbx.AppendFormat("{{\"requests\": [");
             int i = 0, b = 0, s = 0;
+            
             foreach (BsonDocument bsdx in gamers)
             {
                 bsdx.RemoveAt(0);
@@ -898,6 +899,7 @@ namespace SignalR.Server.Hubs
                 sbx.AppendFormat("{0}", bsdx.ToString());
                 i++;
             }
+            
             sbx.AppendFormat("]}}");
 
             if (winner != "@@@@")   //WINNER FOUND
@@ -910,7 +912,7 @@ namespace SignalR.Server.Hubs
                 UpdateDocument updateDoc = new UpdateDocument(queryx);
                 gamersDoc.Update(queryDoc, updateDoc, muo);
             }
-
+            
             return sbx.ToString();
         }
 
