@@ -23,7 +23,7 @@ $(document).ready(function () {
     });
 
     hubConnection.on("ClearMonitor", data => {
-        //console.log("*** CLEAR GAME ***", data);
+        console.log("*** CLEAR GAME ***", data);
         UpdateField("ship_down_for", "@@@@", "string");
         UpdateField("winner", "@@@@", "string");   
         clearGameboard();     
@@ -847,18 +847,18 @@ function BuildTheFleet(quietly) //
     createSVGExplosion();
 
     //Generate 4 5
-    // generateAircraftCarrier(quietly, 5, 0);
-    // generateAircraftCarrier(quietly, 5, 1);
-    // generateAircraftCarrier(quietly, 5, 2);
-    // generateAircraftCarrier(quietly, 5, 3);
+    generateAircraftCarrier(quietly, 5, 0);
+    generateAircraftCarrier(quietly, 5, 1);
+    generateAircraftCarrier(quietly, 5, 2);
+    generateAircraftCarrier(quietly, 5, 3);
 
     //Generate 1 4
-    generateAircraftCarrier(quietly, 3, 4);
+    generateAircraftCarrier(quietly, 4, 4);
 
     //Generate 2 3
-    // generateAircraftCarrier(quietly, 3, 5);
-    // generateAircraftCarrier(quietly, 3, 6);
-    // generateAircraftCarrier(quietly, 3, 7);
+    generateAircraftCarrier(quietly, 3, 5);
+    generateAircraftCarrier(quietly, 3, 6);
+    generateAircraftCarrier(quietly, 3, 7);
  
 }
 
@@ -1151,7 +1151,12 @@ function postApiAction(cmd, info=""){
 
         if(cmd === "ENDGAME")
         {
-            clearGameboard();
+            console.log("*** END GAME ***", data);
+            UpdateField("ship_down_for", "@@@@", "string");
+            UpdateField("winner", "@@@@", "string");   
+            clearGameboard();     
+            getStatus();        
+            pauseClock = false;
         }
 
         if(cmd === "UPDATEGAMEBOARD")
