@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -21,14 +19,22 @@ namespace SignalR.Server
             Configuration = configuration;
         }
 
-        
-
         public void ConfigureServices(IServiceCollection services)
         {
+            var builderX = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("hosting.json", true)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+
+            _configurationRoot = builderX.Build();
+            var corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
+                
             });
 
             services.AddMvc();
@@ -37,7 +43,7 @@ namespace SignalR.Server
             builder =>
             {
                 builder.AllowAnyMethod().AllowAnyHeader()
-                       .WithOrigins("http://localhost")
+                       .WithOrigins(corsDomain, "http://stiletto.ddns.net", "http://deepcore1")
                        .AllowCredentials();
             }));
 
@@ -51,9 +57,7 @@ namespace SignalR.Server
             //    .SetBasePath(env.ContentRootPath)
             //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             //    .AddEnvironmentVariables();
-
             //this._configurationRoot = builder.Build();
-
             //var look = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
 
             if (env.IsDevelopment())
