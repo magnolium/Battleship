@@ -29,6 +29,9 @@ namespace SignalR.Server
 
             _configurationRoot = builderX.Build();
             var corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+#if RELEASE_BUILD
+            corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomainLive");
+#endif
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -43,7 +46,8 @@ namespace SignalR.Server
             builder =>
             {
                 builder.AllowAnyMethod().AllowAnyHeader()
-                       .WithOrigins(corsDomain, "http://stiletto.ddns.net", "http://deepcore1")
+                       //.WithOrigins(corsDomain, "http://stiletto.ddns.net", "http://deepcore1")
+                       .WithOrigins(corsDomain)
                        .AllowCredentials();
             }));
 

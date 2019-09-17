@@ -4,6 +4,8 @@ if (document.createStyleSheet) {
 }
 
 $(document).ready(function () {
+    console.log("Browser ready");
+
     gUser = localStorage.getItem("game_user");
 
     hubConnection = new signalR.HubConnectionBuilder()
@@ -37,6 +39,7 @@ $(document).ready(function () {
       
         Initialize();
 
+        LoadUserList();
     })
 })
 
@@ -127,7 +130,7 @@ function Initialize()
     }
 }
 
-var myApp = angular.module('myApp', ['ngRoute','ngResource']);
+//var myApp = angular.module('myApp', ['ngRoute','ngResource']);
 
 var hubConnection;
 var clientId;
@@ -150,6 +153,7 @@ var apiroot = "http://localhost/battleshipapi/api/";
 var imgroot = "http://localhost/battleship/images";
 //var apiroot = "http://stiletto.ddns.net/battleshipapi/api/";
 //var imgroot = "http://stiletto.ddns.net/battleship/images";
+var norefresh = false;
 var pauseClock = false;
 var username =  getQueryVariable("username");
 var root = -1;
@@ -313,7 +317,7 @@ function HideHitList(b_hide)
     }
 } 
 
-function HideAll()
+function HideTheGameboards()
 {
     //$("#request-tab").show();
 
@@ -331,7 +335,7 @@ function HideAll()
 
 function OnSelectedTab(tabView){
     
-    //console.log("OnSelectedTab", tabView);
+    console.log("OnSelectedTab["+tabView+"]["+lastTab+"]");
 
     lastTab = tabView;
 
@@ -339,10 +343,10 @@ function OnSelectedTab(tabView){
     {
         $("#data").show();
         $('.header-btn').show();
-        
         $("#request-tab").hide();
         $("#game-tab").hide();
         $("#users-tab").hide();
+        $("#help-tab").hide();
         HideHitList(true);
     }
     if(tabView==="local")
@@ -352,6 +356,7 @@ function OnSelectedTab(tabView){
         
         $("#request-tab").hide();
         $("#users-tab").hide();
+        $("#help-tab").hide();
         $("#game-tab").hide();
         HideHitList(false);
     }
@@ -361,8 +366,9 @@ function OnSelectedTab(tabView){
         $("#data").hide();
         $("#request-tab").show();
         $("#users-tab").hide();
+        $("#help-tab").hide();
         $("#game-tab").hide();
-        HideAll();
+        HideTheGameboards();
     }
     if(tabView==="active_game")
     {
@@ -370,29 +376,34 @@ function OnSelectedTab(tabView){
         $('.header-btn').hide();
         $("#users-tab").hide();
         $("#request-tab").hide();
+        $("#help-tab").hide();
         $("#game-tab").show();
-        HideAll();
+        HideTheGameboards();
     }    
     if(tabView==="users")
     {
+        console.log("users selected");
         $('.header-btn').hide();
         $("#users-tab").show();
         $("#active-tab").hide();
         $("#request-tab").hide();
+        $("#help-tab").hide();
         $("#game-tab").show();
         $("#data").hide();
-        HideAll();
+        HideTheGameboards();
     }    
 
     if(tabView==="help")
     {
+        console.log("Help selected");
         $('.header-btn').hide();
+        $("#help-tab").show();
         $("#users-tab").hide();
         $("#active-tab").hide();
         $("#request-tab").hide();
         $("#game-tab").hide();
         $("#data").hide();
-        HideAll();
+        HideTheGameboards();
     }    
 
     if(tabView==="chat")
@@ -845,7 +856,7 @@ function BuildTheFleet(quietly) //
     }
 
     createSVGExplosion();
-
+    /*
     //Generate 4 5
     generateAircraftCarrier(quietly, 5, 0);
     generateAircraftCarrier(quietly, 5, 1);
@@ -859,7 +870,8 @@ function BuildTheFleet(quietly) //
     generateAircraftCarrier(quietly, 3, 5);
     generateAircraftCarrier(quietly, 3, 6);
     generateAircraftCarrier(quietly, 3, 7);
- 
+    */
+    generateAircraftCarrier(quietly, 4, 0);
 }
 
 function btnRequest(mode, userid) // 
@@ -870,7 +882,7 @@ function btnRequest(mode, userid) //
     
     if(PLAY_MODE)
     {
-        //console.log("GAME-IN-PLAY");
+        console.log("GAME-IN-PLAY");
         return;
     }
 
@@ -906,17 +918,20 @@ function btnRequest(mode, userid) //
     var status = "";
     
 
-    hubConnection.invoke("RequestSubmit", jx)
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        console.log("HUB Response:", data)
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("RequestSubmit", jx)
+        .then(datax => {
+            var data = JSON.parse(datax);
+            // you can access your data here
+            console.log("HUB Response:", data)
 
-        console.log('COMPLETED', data);
-        postApiAction("FETCHGAMEBOARD");
-        
-        gotoGameboard();        
-    })
+            console.log('COMPLETED', data);
+            postApiAction("FETCHGAMEBOARD");
+            
+            gotoGameboard();        
+        })
+    }
 }
 
 function btnPlayGame() // 
@@ -977,49 +992,51 @@ function validateLogin(type){
             
         var status = "";
 
-        console.log("ValidateLogin1:", json)
-        hubConnection.invoke("ValidateLogin", json)
-        .then(datax=> {
+        if(hubConnection.connectionState>0)
+        {
+            hubConnection.invoke("ValidateLogin", json)
+            .then(datax=> {
 
-            var data = JSON.parse(datax);
-            // you can access your data here
-            console.log("ValidateLogin2:", data)
-            
-            status = data.response;
-
-            if(status === "OK" || status === "PRESENT")
-            {
-                localStorage.setItem("game_user", $("#login_username").val());           
-                localStorage.setItem("game_pswd", $("#login_password").val());           
+                var data = JSON.parse(datax);
+                // you can access your data here
+                console.log("ValidateLogin2:", data)
                 
-                gUser = $("#login_username").val();
+                status = data.response;
 
-                var modal = document.getElementById('loginModal');
-                var modalFrm = document.getElementById('loginForm');
+                if(status === "OK" || status === "PRESENT")
+                {
+                    localStorage.setItem("game_user", $("#login_username").val());           
+                    localStorage.setItem("game_pswd", $("#login_password").val());           
+                    
+                    gUser = $("#login_username").val();
 
-                //console.log('STYLES:', modal.style.display);
+                    var modal = document.getElementById('loginModal');
+                    var modalFrm = document.getElementById('loginForm');
 
-                modal.style.display = "none";
-                modalFrm.style.display = "none";
+                    //console.log('STYLES:', modal.style.display);
 
-                //Need to check if we have a game-in-progress (GIP)
-                buildHitZones(0);
+                    modal.style.display = "none";
+                    modalFrm.style.display = "none";
 
-                $("#hdr-cfg-local").html(gUser);
-                $("#hdr-cfg-remote").html(gRemoteUser);
-                console.log("PAUSE OFF");
-                pauseClock = false;        
-            }
-            else
-            {
-                console.log('STATUS:', status);
-                if(status=="USEREXISTS")$("#messageid").html("That username already exists");
-                if(status=="PSWDFAIL")$("#messageid").html("Incorrect password");
-            }
+                    //Need to check if we have a game-in-progress (GIP)
+                    buildHitZones(0);
 
-            $("#hdr-cfg-profile").html($("#login_username").val());
+                    $("#hdr-cfg-local").html(gUser);
+                    $("#hdr-cfg-remote").html(gRemoteUser);
+                    console.log("PAUSE OFF");
+                    pauseClock = false;        
+                }
+                else
+                {
+                    console.log('STATUS:', status);
+                    if(status=="USEREXISTS")$("#messageid").html("That username already exists");
+                    if(status=="PSWDFAIL")$("#messageid").html("Incorrect password");
+                }
 
-        })
+                $("#hdr-cfg-profile").html($("#login_username").val());
+
+            })
+        }
     }    
 }
 
@@ -1031,13 +1048,16 @@ function playGame(user){
 
     var json = '{\"user1\":\"'+gRemoteUser+'\",\"user2\":\"'+gUser+'\"}';
 
-    hubConnection.invoke("StartGame", json)
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        console.log("playGame:", data)
-        postApiAction("ISPLAYING");
-    })
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("StartGame", json)
+        .then(datax => {
+            var data = JSON.parse(datax);
+            // you can access your data here
+            console.log("playGame:", data)
+            postApiAction("ISPLAYING");
+        })
+    }
     /*
     $.when( $.ajax({
         'url': apiroot + 'startgame',
@@ -1095,126 +1115,131 @@ function postApiAction(cmd, info=""){
     var retValue;
 
 
-    hubConnection.invoke("PostApiAction", json)
-    .then(datax => {
-        var dataz = JSON.parse(datax);
-        // you can access your data here
-        console.log("PostApiAction:", dataz)
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("PostApiAction", json)
+        .then(datax => {
+            var dataz = JSON.parse(datax);
+            // you can access your data here
+            //console.log("postApiActionX-XXXX:", dataz)
 
-        retValue = dataz;
+            retValue = dataz;
 
-        //PLAY_MODE = false;
-        if(dataz.action === "ISPLAYING" && dataz.response === "YES")
-        {//If no fleet deployed then deploy it
-            //console.log("postApiAction-XXXX", retValue.details);
-            
-            if( retValue.details.ships_remote.length === 0 )
-            {
-                //console.log("postApiAction-ZZZZ");
+            //PLAY_MODE = false;
+            if(dataz.action === "ISPLAYING" && dataz.response === "YES")
+            {//If no fleet deployed then deploy it
+                //console.log("postApiAction-XXXX", retValue.details);
                 
-                clearGameboard();
-                //REQUEST_MODE = false;
+                if( retValue.details.ships_remote.length === 0 )
+                {
+                    //console.log("postApiAction-ZZZZ");
+                    
+                    clearGameboard();
+                    //REQUEST_MODE = false;
 
-                BuildTheFleet();   
-                
-                hasShips = true;
+                    BuildTheFleet();   
+                    
+                    hasShips = true;
 
-                var jx = buildFleetJSON(false);
-                postApiAction("UPDATEGAMEBOARD", jx);
-                //console.log("postApiAction-FETCHGAMEBOARD-1");
-                hitcount = 0;
-                localHitcount = 0;
+                    var jx = buildFleetJSON(false);
+                    postApiAction("UPDATEGAMEBOARD", jx);
+                    //console.log("postApiAction-FETCHGAMEBOARD-1");
+                    hitcount = 0;
+                    localHitcount = 0;
+                    getStatus();
+                }
+                else
+                {
+                    //console.log("postApiAction-FETCHGAMEBOARD-2");
+                    //Get the ships data and load into gameboard
+                    //postApiAction("FETCHGAMEBOARD");
+                    //PLAY_MODE = true;
+                    gotoGameboard();
+                    RefreshUserList();
+                    getStatus();
+                }
             }
             else
             {
-                //console.log("postApiAction-FETCHGAMEBOARD-2");
-                //Get the ships data and load into gameboard
-                //postApiAction("FETCHGAMEBOARD");
-                //PLAY_MODE = true;
-                gotoGameboard();
-            }
-        }
-        else
-        {
-            //Clear the gameboard
-            //console.log("Clear the board @1128 with action/command:", dataz.action, cmd);
+                //Clear the gameboard
+                console.log("Clear the board @1128 with action/command:", dataz.action, cmd);
 
-            if(dataz.action != "REQ" && 
-                dataz.action != "WAIT" && 
-                dataz.action != "PLAY" && 
-                cmd != "UPDATEHITLIST" && 
-                cmd != "GETREMOTEGAMEBOARD")
-            {
-                //clearGameboard();
-            }
-        }
-
-        if(cmd === "ENDGAME")
-        {
-            console.log("*** END GAME ***", data);
-            UpdateField("ship_down_for", "@@@@", "string");
-            UpdateField("winner", "@@@@", "string");   
-            clearGameboard();     
-            getStatus();        
-            pauseClock = false;
-        }
-
-        if(cmd === "UPDATEGAMEBOARD")
-        {
-            //console.log("postApiAction-FETCHGAMEBOARD-3", dataz.ships);
-            
-            getuserinfo();
-            //getuserinfo(true);
-
-            var idd = "#id_"+lastTab;
-            //console.log("remove active from", idd);
-            
-            $(idd).removeClass("active");
-            $('#id_local').addClass("active");
-
-            OnSelectedTab("local");
-
-            //Populate the gameboard
-            
-            if(isIssuer === gUser)
-            {
-                //console.log("postApiAction-ISSUER", dataz);
-                $.each(dataz.ships, function (i, obj)
+                if(dataz.action != "REQ" && 
+                    dataz.action != "WAIT" && 
+                    dataz.action != "PLAY" && 
+                    cmd != "UPDATEHITLIST" && 
+                    cmd != "GETREMOTEGAMEBOARD")
                 {
-                    var node = svg.selectAll((".sea."+obj.cell));
-                    node[0][0].setAttribute("href", obj.img);
-                });           
+                    //clearGameboard();
+                }
+            }
+
+            if(cmd === "ENDGAME")
+            {
+                console.log("*** END GAME ***", data);
+                UpdateField("ship_down_for", "@@@@", "string");
+                UpdateField("winner", "@@@@", "string");   
+                clearGameboard();     
+                getStatus();        
+                pauseClock = false;
+            }
+
+            if(cmd === "UPDATEGAMEBOARD")
+            {
+                console.log("postApiAction-FETCHGAMEBOARD-3", dataz.ships);
+                
+                getuserinfo();
+                //getuserinfo(true);
+
+                var idd = "#id_"+lastTab;
+                //console.log("remove active from", idd);
+                
+                $(idd).removeClass("active");
+                $('#id_local').addClass("active");
+
+                OnSelectedTab("local");
 
                 //Populate the gameboard
-                $.each(dataz.ships, function (i, obj)
+                
+                if(isIssuer === gUser)
                 {
-                    var node = svg.selectAll((".hit."+obj.cell));
-                    node[0][0].setAttribute("latent_img", obj.img);
-                    node[0][0].setAttribute("isship", obj.isship);
-                });    
+                    //console.log("postApiAction-ISSUER", dataz);
+                    $.each(dataz.ships, function (i, obj)
+                    {
+                        var node = svg.selectAll((".sea."+obj.cell));
+                        node[0][0].setAttribute("href", obj.img);
+                    });           
 
+                    //Populate the gameboard
+                    $.each(dataz.ships, function (i, obj)
+                    {
+                        var node = svg.selectAll((".hit."+obj.cell));
+                        node[0][0].setAttribute("latent_img", obj.img);
+                        node[0][0].setAttribute("isship", obj.isship);
+                    });    
+
+                }
+                else
+                {
+                    //console.log("postApiAction-REQUESTED", dataz);
+                    $.each(dataz.ships_remote, function (i, obj)
+                    {
+                        var node = svg.selectAll((".sea."+obj.cell));
+                        node[0][0].setAttribute("href", obj.img);
+                    });           
+
+                    //Populate the gameboard
+                    $.each(dataz.ships_remote, function (i, obj)
+                    {
+                        var node = svg.selectAll((".hit."+obj.cell));
+                        node[0][0].setAttribute("latent_img", obj.img);
+                        node[0][0].setAttribute("isship", obj.isship);
+                    });                 
+                }
             }
-            else
-            {
-                //console.log("postApiAction-REQUESTED", dataz);
-                $.each(dataz.ships_remote, function (i, obj)
-                {
-                    var node = svg.selectAll((".sea."+obj.cell));
-                    node[0][0].setAttribute("href", obj.img);
-                });           
-
-                //Populate the gameboard
-                $.each(dataz.ships_remote, function (i, obj)
-                {
-                    var node = svg.selectAll((".hit."+obj.cell));
-                    node[0][0].setAttribute("latent_img", obj.img);
-                    node[0][0].setAttribute("isship", obj.isship);
-                });                 
-            }
-        }
-        $("#wait").hide(); 
-    })
-
+            $("#wait").hide(); 
+        })
+    }
 }
 
 function buildFleetJSON(HASBRACKETS=true){
@@ -1273,24 +1298,26 @@ function UpdateHitlistJSON(cell){
     json = json + "\"rows\" : " + rows +",";
     json = json + "\"cell\" : \"" + cell + "\"}";
     
-    hubConnection.invoke("UpdateHitList", json)
-    .then(datax => {
-        var data = JSON.parse(datax);
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("UpdateHitList", json)
+        .then(datax => {
+            var data = JSON.parse(datax);
 
-        retValue = data;
-        
-        console.log("Update done:", retValue);
-        TURN_CHANGE = true;
+            retValue = data;
+            
+            console.log("Update done:", retValue);
+            TURN_CHANGE = true;
 
-        hubConnection.invoke("UpdateGameBoard", gUser, gRemoteUser);
+            hubConnection.invoke("UpdateGameBoard", gUser, gRemoteUser);
 
-        //getStatus();
+            getStatus();
 
-        //Reconcile the gameboard from the hitlist
-        pauseClock = false;
+            //Reconcile the gameboard from the hitlist
+            pauseClock = false;
 
-    })
-    
+        })
+    }    
 }
 
 function clearGameboard(){
@@ -1367,264 +1394,272 @@ function getStatus(){
         json = json + "\"game_id\":\""+gRemoteUser+"|"+gUser+"\",\"user_id\":\""+gUser+"\",\"type\":\"status\"";
     json = json + "}";
     
-    hubConnection.invoke("GetStatus", json)
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        //console.log("GetStatus:", data)
+    if(hubConnection.connectionState>0)
+    {
+        $("#online").show();
+        hubConnection.invoke("GetStatus", json)
+        .then(datax => {
+            var data = JSON.parse(datax);
+            // you can access your data here
+            //console.log("GetStatus:", data)
 
-        var q = 0;
-        var k = 0;
-        $("#request-tab").html("");
-        $("#game-tab").html("");
-        
-        //console.log("getStatus", data.requests.length);
-        if(data.requests != undefined)
-        {
-            if(data.requests.length === 0)  //Clear the board
+            var q = 0;
+            var k = 0;
+            $("#request-tab").html("");
+            $("#game-tab").html("");
+            
+            //console.log("getStatus", data.requests.length);
+            if(data.requests != undefined)
             {
-                //console.log("No gameboard activity detected");
+                if(data.requests.length === 0)  //Clear the board
+                {
+                    //console.log("No gameboard activity detected");
 
-                $("#requestX")[0].innerHTML = "Requests";
-                $("#activeX")[0].innerHTML = "Active Games";
-                clearGameboard();
-                $('#action_wait').hide();
-                return;
+                    $("#requestX")[0].innerHTML = "Requests";
+                    $("#activeX")[0].innerHTML = "Active Games";
+                    clearGameboard();
+                    $('#action_wait').hide();
+                    return;
+                }
+                else
+                {
+                    //console.log("getStatus", data.requests[0].action);
+                    var btn = document.getElementById('btn-status');
+
+
+                    if(last_data===null)
+                        last_data = data;
+
+                    //DO COMAPRE
+                    //Previous status check
+                    if(current_status != null && PLAY_MODE )
+                    {
+                        
+                        //var shiplen = 0;
+                        if(isIssuer === gUser)
+                        {
+                            //console.log("YOU ARE THE ISSUER");
+                            pHit = data.requests[0].hits_remote;
+                            pShp = data.requests[0].ships_remote;
+                            vHit = data.requests[0].hits;
+                            vShp = data.requests[0].ships;
+
+                            prvpHit = last_data.requests[0].hits_remote;
+                            prvpShp = last_data.requests[0].ships_remote;
+                            prvHit = last_data.requests[0].hits;
+                            prvShp = last_data.requests[0].ships;
+                        }
+                        else
+                        {
+                            //console.log("YOU ARE NOT THE ISSUER");
+                            pHit = data.requests[0].hits;   
+                            pShp = data.requests[0].ships;   
+                            vHit = data.requests[0].hits_remote;   
+                            vShp = data.requests[0].ships_remote;   
+                            
+                            prvpHit = last_data.requests[0].hits;
+                            prvpShp = last_data.requests[0].ships;
+                            prvHit = last_data.requests[0].hits_remote;
+                            prvShp = last_data.requests[0].ships_remote;
+                        }
+
+                        //AUDIO NOTIFICATION CONTROL FOR OPPOSITION
+                        
+                        $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
+                        {
+                            var prvObj = prvpShp[i];
+                            if(obj.hit==="Y")
+                            {
+                                if(prvObj.hit==="N")
+                                {
+                                    console.log("**HIT**");
+                                    hit();
+                                }
+                                var imgMiss = imgroot+"/bs_hit.png";
+                                let idd = obj.cell;
+                                var nodeLocal = svg.selectAll(".hit."+ idd);
+                                nodeLocal.attr("xlink:href", imgMiss );              
+                            }
+                        });
+
+                        if(pHit.length>prvpHit.length)
+                            splash();
+
+                        if(vHit.length>prvHit.length)
+                            splash();
+
+                        last_data = data;
+                    }
+
+                    ////////////////////// GET USER INFO //////////////////
+                    getuserinfo();
+                    ///////////////////////////////////////////////////////
+
+                    if(TURN_CHANGE)
+                    {
+                        TURN_CHANGE = false;
+
+                        if(PING === 0)
+                            PING = 1;
+                        //console.log("TURN_CHANGE");
+                    }
+                }
             }
             else
             {
-                //console.log("getStatus", data.requests[0].action);
-                var btn = document.getElementById('btn-status');
-
-
-                if(last_data===null)
-                    last_data = data;
-
-                //DO COMAPRE
-                //Previous status check
-                if(current_status != null && PLAY_MODE )
+                if(data.user==="NOTFOUND");
                 {
-                    
-                    //var shiplen = 0;
-                    if(isIssuer === gUser)
-                    {
-                        //console.log("YOU ARE THE ISSUER");
-                        pHit = data.requests[0].hits_remote;
-                        pShp = data.requests[0].ships_remote;
-                        vHit = data.requests[0].hits;
-                        vShp = data.requests[0].ships;
+                    pauseClock = true;
 
-                        prvpHit = last_data.requests[0].hits_remote;
-                        prvpShp = last_data.requests[0].ships_remote;
-                        prvHit = last_data.requests[0].hits;
-                        prvShp = last_data.requests[0].ships;
+                    localStorage.setItem("game_user", "");
+                    localStorage.setItem("game_pswd", "");
+                    gUser = "";
+                    gRemoteUser = "";
+
+                    $("#span-submit-1").html("Apply");
+                    var btn = document.getElementById('btn-submit-2');
+                    btn.style.visibility = "hidden";
+
+                    $("#hdr-cfg-local").html(gUser);
+                    $("#hdr-cfg-remote").html(gRemoteUser);
+
+                    $('#id_local').addClass("active");
+
+                    var modal = document.getElementById('loginModal');
+                    var modalFrm = document.getElementById('loginForm');
+                    
+                        modalFrm.onclick = function(event) {
+                        //modal.style.display = "none";
+                        //modalFrm.style.display = "none";
                     }
+                    // When the user clicks anywhere outside of the modal, close it
+                    modal.onclick = function(event) {
+                        //modal.style.display = "none";
+                    }
+
+                    modal.style.display = "block";    
+                }
+                return;
+            }
+
+            $.each(data.requests, function (i, obj)
+            {
+                //console.log(obj);
+                
+                if(obj.user_2 === gUser && obj.action==="REQ")
+                {
+                    q++;
+                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_request_btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
+                    $("#request-tab").append(tddata);
+                    
+                }
+                
+                //console.log(obj.user_1, "===", gUser,"|", obj.user_2, "===", gUser);
+                if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
+                {
+                    k++;
+                    var tddata = "";
+
+                    if(gUser === obj.user_1)
+                        tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
                     else
-                    {
-                        //console.log("YOU ARE NOT THE ISSUER");
-                        pHit = data.requests[0].hits;   
-                        pShp = data.requests[0].ships;   
-                        vHit = data.requests[0].hits_remote;   
-                        vShp = data.requests[0].ships_remote;   
-                        
-                        prvpHit = last_data.requests[0].hits;
-                        prvpShp = last_data.requests[0].ships;
-                        prvHit = last_data.requests[0].hits_remote;
-                        prvShp = last_data.requests[0].ships_remote;
-                    }
+                        tddata = '<div id="btn-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
 
-                    //AUDIO NOTIFICATION CONTROL FOR OPPOSITION
-                    
-                    $.each(pShp, function (i, obj) //search my hits against opponent and update the hitboard
-                    {
-                        var prvObj = prvpShp[i];
-                        if(obj.hit==="Y")
-                        {
-                            if(prvObj.hit==="N")
-                            {
-                                console.log("**HIT**");
-                                hit();
-                            }
-                            var imgMiss = imgroot+"/bs_hit.png";
-                            let idd = obj.cell;
-                            var nodeLocal = svg.selectAll(".hit."+ idd);
-                            nodeLocal.attr("xlink:href", imgMiss );              
-                        }
-                    });
-
-                    if(pHit.length>prvpHit.length)
-                        splash();
-
-                    if(vHit.length>prvHit.length)
-                        splash();
-
-                    last_data = data;
+                    $("#game-tab").append(tddata);
                 }
+                
+                //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
+                //console.log("ACTION: ", obj.issuer);
 
-                ////////////////////// GET USER INFO //////////////////
-                getuserinfo();
-                ///////////////////////////////////////////////////////
+                isIssuer = obj.issuer;
 
-                if(TURN_CHANGE)
+                myStatus = obj.action;
+
+                if(obj.action==="REQ")
                 {
-                    TURN_CHANGE = false;
-
-                    if(PING === 0)
-                        PING = 1;
-                    //console.log("TURN_CHANGE");
-                }
-            }
-        }
-        else
-        {
-            if(data.user==="NOTFOUND");
-            {
-                pauseClock = true;
-
-                localStorage.setItem("game_user", "");
-                localStorage.setItem("game_pswd", "");
-                gUser = "";
-                gRemoteUser = "";
-
-                $("#span-submit-1").html("Apply");
-                var btn = document.getElementById('btn-submit-2');
-                btn.style.visibility = "hidden";
-
-                $("#hdr-cfg-local").html(gUser);
-                $("#hdr-cfg-remote").html(gRemoteUser);
-
-                $('#id_local').addClass("active");
-
-                var modal = document.getElementById('loginModal');
-                var modalFrm = document.getElementById('loginForm');
-                
-                    modalFrm.onclick = function(event) {
-                    //modal.style.display = "none";
-                    //modalFrm.style.display = "none";
-                }
-                // When the user clicks anywhere outside of the modal, close it
-                modal.onclick = function(event) {
-                    //modal.style.display = "none";
+                    if(isIssuer === gUser)
+                        REQUEST_MODE = true;
+                    else
+                        REQUEST_MODE = false;
                 }
 
-                modal.style.display = "block";    
-            }
-            return;
-        }
-
-        $.each(data.requests, function (i, obj)
-        {
-            //console.log(obj);
-            
-            if(obj.user_2 === gUser && obj.action==="REQ")
-            {
-                q++;
-                var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_request_btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
-                $("#request-tab").append(tddata);
-                
-            }
-            
-            //console.log(obj.user_1, "===", gUser,"|", obj.user_2, "===", gUser);
-            if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
-            {
-                k++;
-                var tddata = "";
-
-                if(gUser === obj.user_1)
-                    tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
-                else
-                    tddata = '<div id="btn-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
-
-                $("#game-tab").append(tddata);
-            }
-            
-            //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
-            //console.log("ACTION: ", obj.issuer);
-
-            isIssuer = obj.issuer;
-
-            myStatus = obj.action;
-
-            if(obj.action==="REQ")
-            {
-                if(isIssuer === gUser)
-                    REQUEST_MODE = true;
-                else
+                if(obj.next_player!==gUser)
+                {
                     REQUEST_MODE = false;
-            }
-
-            if(obj.next_player!==gUser)
-            {
-                REQUEST_MODE = false;
-                PLAY_MODE = true;
-                YOURTURN = false;
-                $("#userturn")[0].innerHTML = "THEIR TURN";
-                $("#userturn").addClass("disable");
-            }
-            
-            if(obj.next_player===gUser && gRemoteUser !== "")
-            {
-                REQUEST_MODE = false;
-                PLAY_MODE = true;
-                YOURTURN = true;
-                $("#userturn").removeClass("disable");
-                $("#userturn")[0].innerHTML = "YOUR TURN";
+                    PLAY_MODE = true;
+                    YOURTURN = false;
+                    $("#userturn")[0].innerHTML = "THEIR TURN";
+                    $("#userturn").addClass("disable");
+                }
                 
-                if(PING)
+                if(obj.next_player===gUser && gRemoteUser !== "")
                 {
-                    ping();
-                    PING = 0;
-                }                    
-            }
-        });
+                    REQUEST_MODE = false;
+                    PLAY_MODE = true;
+                    YOURTURN = true;
+                    $("#userturn").removeClass("disable");
+                    $("#userturn")[0].innerHTML = "YOUR TURN";
+                    
+                    if(PING)
+                    {
+                        ping();
+                        PING = 0;
+                    }                    
+                }
+            });
 
-        if(q>0)
-            $("#requestX")[0].innerHTML = "Requests ("+q+")";
-        else
-            $("#requestX")[0].innerHTML = "Requests";
+            if(q>0)
+                $("#requestX")[0].innerHTML = "Requests ("+q+")";
+            else
+                $("#requestX")[0].innerHTML = "Requests";
 
-        if(k>0)
-            $("#activeX")[0].innerHTML = "Active Games ("+k+")";
-        else
-            $("#activeX")[0].innerHTML = "Active Games";
+            if(k>0)
+                $("#activeX")[0].innerHTML = "Active Games ("+k+")";
+            else
+                $("#activeX")[0].innerHTML = "Active Games";
 
-        //console.log("getStatus-isIssuer", isIssuer, );
+            //console.log("getStatus-isIssuer", isIssuer, );
 
-        if(REQUEST_MODE)    //Disable buttons
-        {
-            $('#btn-reset').addClass('disable')
-            $('#btn-request').addClass('disable')
-            $('#btn-play-again').addClass('disable')
-            if(myStatus !== "REQ")
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').addClass('disable')
-        }
-        else if(PLAY_MODE)    //Disable buttons
-        {
-            $('#btn-reset').addClass('disable')
-            $('#btn-request').addClass('disable')
-            $('#btn-play-again').addClass('disable')
-            if(myStatus !== "WAIT" || myStatus !== "PLAY")
+            if(REQUEST_MODE)    //Disable buttons
             {
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').addClass('disable')
-                else
-                    $('#btn-end-game').removeClass('disable')
+                $('#btn-reset').addClass('disable')
+                $('#btn-request').addClass('disable')
+                $('#btn-play-again').addClass('disable')
+                if(myStatus !== "REQ")
+                    if(isIssuer!==gUser)
+                        $('#btn-end-game').addClass('disable')
             }
-        }
-        else
-        {
-            //console.log("** ENABLE BUTTONS **")
-            $('#btn-reset').removeClass('disable')
-            $('#btn-request').removeClass('disable')
-            $('#btn-play-again').addClass('disable')
+            else if(PLAY_MODE)    //Disable buttons
+            {
+                $('#btn-reset').addClass('disable')
+                $('#btn-request').addClass('disable')
+                $('#btn-play-again').addClass('disable')
+                if(myStatus !== "WAIT" || myStatus !== "PLAY")
+                {
+                    if(isIssuer!==gUser)
+                        $('#btn-end-game').addClass('disable')
+                    else
+                        $('#btn-end-game').removeClass('disable')
+                }
+            }
+            else
+            {
+                //console.log("** ENABLE BUTTONS **")
+                $('#btn-reset').removeClass('disable')
+                $('#btn-request').removeClass('disable')
+                $('#btn-play-again').addClass('disable')
 
-            if(isIssuer !== "")
-                if(isIssuer!==gUser)
-                    $('#btn-end-game').removeClass('disable')
-        }
-
-    })
+                if(isIssuer !== "")
+                    if(isIssuer!==gUser)
+                        $('#btn-end-game').removeClass('disable')
+            }
+        })
+    }
+    else
+    {
+        $("#online").hide();
+        console.log("*** DISCONNECT FROM BATTLEHUB ***");
+    }
 }
 
 function getuserinfo(fromRemote=false){
@@ -2078,7 +2113,104 @@ function UpdateField(fieldname, value, value_type)
     })
 }
 
+function LoadUserList(){
+    //console.log("Angular_loadUserList");
+    gUser = localStorage.getItem("game_user");
+    
+    var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
+    
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("LoadUserList", jx)
+        .then(data => {
+            SuccessCallback(data);
+        })
+    }
+}
 
+function SuccessCallback(data){
+    //console.log("SuccessCallback");
+    var js = JSON.parse(data);
+
+    $("#user-list").html("");
+
+    $.each(js.data.gamers, function (i, obj)
+    {
+        //console.log(obj);
+        //q++;
+        var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish_play_btn" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play block repel">' + obj.game_id + '</div><div class="play-img"><img src="images/play.png"></div></div>';
+        $("#user-list").append(tddata);
+    });
+
+    if(norefresh)
+    {
+        //console.log("norefresh", $rootScope.categories);
+        return;
+    }
+
+    $("#wait").hide();   
+    buildHitZones(0);
+    myVar = setInterval(myTimer, 5000);
+    RefreshUserList();
+}
+
+
+function myTimer()
+{
+    //console.log("myTimer");
+    if (!processing)
+        console.log('Polling Stopped');
+    else
+        if(!pauseClock)
+            getStatus();
+}   
+
+function RefreshUserList(){
+    console.log("RefreshUserList");
+    angRefresh = setInterval(userTimer, 10000);
+}
+
+function userTimer()
+{
+    norefresh = true;
+    LoadUserList();
+}
+
+
+function RequestUser(userid)
+{
+    gRemoteUser = userid;
+    localStorage.setItem("remote_user", gRemoteUser);    
+
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("AngularStart", gUser, userid)
+        .then(datax => {
+            var data = JSON.parse(datax);
+            // you can access your data here
+            console.log("RequestUser:", data)
+            btnRequest('REQ', userid);
+        })        
+    }
+}
+/*
+function LoadUserList(){
+    //console.log("Angular_loadUserList");
+    var jsonGet = apiroot+'gamers';
+    var jsonPost = apiroot+'gamers';
+    
+    gUser = localStorage.getItem("game_user");
+    
+    var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
+    
+    //Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
+    HubConnection.invoke("LoadUserList", jx)
+    .then(data => {
+        successCallback(data);
+    })
+}
+*/
+/*
 myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Server)  {
 
     var norefresh = false;
@@ -2087,7 +2219,7 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
     //console.log("Controller");
 
     $rootScope.angHubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/BattleHub")
+        .withUrl("http://stiletto.ddns.net:5000/BattleHub")
         .build();
 
     $rootScope.angHubConnection.start().then(() => $rootScope.angHubConnection.invoke("AngularStart", gUser))
@@ -2106,31 +2238,23 @@ myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Serve
         gUser = localStorage.getItem("game_user");
         
         var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
-        //console.log("myApp:", jx);
-
-        Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
         
-        /*
+        //Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
         $rootScope.angHubConnection.invoke("LoadUserList", jx)
         .then(data => {
-            // you can access your data here
-            console.log("ANG-HUB-2 Response:", data);
-
             successCallback(data);
         })
-        */
     }
 
     function successCallback(data){
         
         var js = JSON.parse(data);
-        
-        //console.log("successCallback", js);
 
         $rootScope.categories = js.data.gamers;
 
         if(norefresh)
         {
+            //console.log("norefresh", $rootScope.categories);
             return;
         }
 
@@ -2203,32 +2327,12 @@ myApp.factory('Server', ['$http', function ($http) {
     post: function(url, pdata) {
       return $http.post(url, pdata);
     },
-
-
   };
 
 }]);
 
-
+*/
 function btnTest(thx){
-    //pauseClock = true;
-    //BuildTheFleet(false);
-    /*
-    console.log(thx);
-    let idd = thx.getAttribute("idx");
-    var nodeLocal = svg.selectAll(".sea."+ idd);
-
-    svg.selectAll("circle").remove();
-    createSVGExplosion();
-    var explode = svg.select(".explosion");
-
-    var x = Number(nodeLocal.attr("x"))+20;
-    var y = Number(nodeLocal.attr("y"))+20;
-    explode.attr("cx", x).attr("cy", y).transition().duration(1000).attr("r", "100").transition().duration(1000).attr("r", "0");
-    
-     SinkTheShip(idd);
-    //boom();
-    */
 }
 
 

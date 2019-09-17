@@ -23,10 +23,11 @@
   <!--
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   -->
+  <!--  
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular-route.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular-resource.min.js"></script>
-    
+  -->
     <script src="bsx.js"></script>
     <link href="fonts/dinot/css/dinot.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="bsx.css">
@@ -63,7 +64,6 @@
               <li id="id_active_game"><a data-toggle="tab" id="activeX" href="#active_game">Active Games</a></li>
               <li id="id_users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
               <li id="id_help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
-              <li id="id_chat"><a data-toggle="tab" id="chatX" href="#chat">Chat</a></li>
           </ul>
 
           <div id="local" class="tab-pane fade in active">
@@ -73,20 +73,22 @@
 
           <div id="btn-group" style="float:left;display:inline">
               <!--
-              <div id="btn-test" class="block publish_btn header-btn" onclick="javascript:btnTest();"><span class="publish_span_btn">TEST</span></div>
+              <div id="btn-test" class="block horizontal publish_btn header-btn" onclick="javascript:btnTest();"><span class="publish_span_btn">TEST</span></div>
               -->
-              <div id="btn-status" class="block status_btn header-btn" onclick="javascript:gotoHitlist();"><span id="userturn" class="publish_span_btn">Not Playing</span></div>
-              <div id="btn-end-game" class="block publish_btn header-btn" onclick="javascript:btnEndGame();"><span class="publish_span_btn">End Game</span></div>
+              <div id="btn-status" class="block horizontal status_btn header-btn" onclick="javascript:gotoHitlist();"><span id="userturn" class="publish_span_btn">Not Playing</span></div>
+              <div id="btn-end-game" class="block horizontal publish_btn header-btn" onclick="javascript:btnEndGame();"><span class="publish_span_btn">End Game</span></div>
               <!--
-              <div id="gamers-dropdown" class="block control header-btn">
+              <div id="gamers-dropdown" class="block horizontal control header-btn">
                 <select class="gamers-menu" id="gamer-item" name="menu" onchange="javascript:selectRemoteUser();">
                     <option value="" selected id="no_select">(Select Remote User)</option>
                 </select>
               </div>     
               -->         
-              <div id="btn-play-again" class="block publish_btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish_span_btn">Play Again</span></div>
-              <div id="btn-percentage" class="block status_btn header-btn"><span id="percid" class="publish_span_btn">0</span></div>
-              <div id="sendmessage" class="block publish_btn header-btn"><span class="publish_span_btn">Send</span></div>
+              <div id="btn-play-again" class="block horizontal publish_btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish_span_btn">Play Again</span></div>
+              <div id="btn-percentage" class="block horizontal status_btn header-btn"><span id="percid" class="publish_span_btn">0</span></div>
+              <div id="sendmessage" class="block horizontal publish_btn header-btn"><span class="publish_span_btn">Send</span></div>
+              
+              <div id="online" class="block horizontal"><img border="0" src="images/online.png" alt="online" height="40"/></div>
           </div>
 
           <script>
@@ -117,7 +119,7 @@
               root.parent = root;
               root.px = root.x;
               root.py = root.y;
-              
+
               // Define the div for the tooltip
               var tooltip = d3.select("body").append("tooltip") 
                   .attr("class", "tooltip")       
@@ -171,8 +173,13 @@
           </div>
 
           <div id="users" class="tab-pane">
-          
             <div id="users-tab" class="users" style="float:left;display:inline">
+              <div id="user-find">
+                <input type="text" placeholder="Enter username"/><br>
+              </div>
+              <div id="user-list" class="categories">
+              </div>  
+              <!--
               <div id="users-ang" ng-app="myApp">
                   <div class="inbox" ng-controller="MainCtrl">
                     <div class="categories">
@@ -187,6 +194,7 @@
                     </div>
                 </div>
               </div>
+              -->
             </div>  
           
           </div>
@@ -249,8 +257,8 @@
                           <input  type="text" class="form-control" placeholder="username" id="login_username" value=""><br>
                           <input  type="password" class="form-control" placeholder="password" id="login_password" value=""><br>
                           <div id="btn-row" style="height:100%;float:center;display:inline">
-                            <div id="btn-submit-1" class="block publish_btn" onclick="javascript:validateLogin('NEW');"><span id="span-submit-1" class="login_span_btn">New</span></div>
-                            <div id="btn-submit-2" class="block publish_btn" onclick="javascript:validateLogin('EXISTS');"><span id="span-submit-2" class="login_span_btn">Already Exist</span></div>
+                            <div id="btn-submit-1" class="block horizontal horizontal publish_btn" onclick="javascript:validateLogin('NEW');"><span id="span-submit-1" class="login_span_btn">New</span></div>
+                            <div id="btn-submit-2" class="block horizontal horizontal publish_btn" onclick="javascript:validateLogin('EXISTS');"><span id="span-submit-2" class="login_span_btn">Already Exist</span></div>
                           </div>
                           <div id="messageid" class="msg"></div>
                       </div>
@@ -267,8 +275,8 @@
               <form id="playagainid">
                 <div class="form-group">
                     <div id="btn-row" style="height:100%;float:center;display:inline">
-                      <div id="btn-submit" class="block publish_btn" onclick="javascript:confirm('YES');"><span class="login_span_btn">Yes</span></div>
-                      <div id="btn-submit" class="block publish_btn" onclick="javascript:confirm('NO');"><span class="login_span_btn">No</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal publish_btn" onclick="javascript:confirm('YES');"><span class="login_span_btn">Yes</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal publish_btn" onclick="javascript:confirm('NO');"><span class="login_span_btn">No</span></div>
                     </div>
 
                 </div>

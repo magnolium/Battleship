@@ -6,6 +6,7 @@
   "compilationOptions": {
     "defines": [
       "TRACE",
+      "RELEASE_BUILD",
       "RELEASE",
       "NETCOREAPP",
       "NETCOREAPP2_1"

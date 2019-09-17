@@ -39,9 +39,9 @@ namespace SignalR.Server.Hubs
             return $"Player {player} is now setup";
         }
 
-        public string AngularStart(string user)
+        public string AngularStart(string user, string remote_user)
         {
-            Debug.WriteLine("ANGULARSTART: " + user);
+            Debug.WriteLine("ANGULARSTART: " + user + " vs " + remote_user);
             return ("{}");
         }
 
@@ -673,7 +673,7 @@ namespace SignalR.Server.Hubs
 
                 if (game[0].GetElement("issuer").Value.ToString() == user_1)    //ISSUER
                 {
-                    bsa = (BsonArray)game[0].GetElement("hits").Value;
+                    bsa = (BsonArray)game[0].GetElement("hits_remote").Value;
                     string cell = bsd.GetElement("cell").Value.ToString();
                     
                     if (!this_is_a_hit_cell)
@@ -687,7 +687,7 @@ namespace SignalR.Server.Hubs
                 }
                 else
                 {
-                    bsa = (BsonArray)game[0].GetElement("hits_remote").Value;
+                    bsa = (BsonArray)game[0].GetElement("hits").Value;
                     string cell = bsd.GetElement("cell").Value.ToString();
 
                     if (!this_is_a_hit_cell)
@@ -919,8 +919,8 @@ namespace SignalR.Server.Hubs
         public void PlayAgain(string data)
         {
             BsonDocument bsd = ConvertPostData(data);
-            string user1 = bsd.GetElement("user_1").Value.ToString();
-            string user2 = bsd.GetElement("user_2").Value.ToString();
+            string gameid = bsd.GetElement("gameid").Value.ToString();
+            string issuer = bsd.GetElement("issuer").Value.ToString();
             Clients.All.SendAsync("ClearMonitor", data);
         }
 
@@ -1002,13 +1002,13 @@ namespace SignalR.Server.Hubs
             if (gamers != null)
             {
                 StringBuilder sbQueryX = new StringBuilder();
-                sbQueryX.AppendFormat("{{ $set: {{ ships : {0}, hits : [], ships_remote : {1},  hits_remote : [], ship_down_for : \"@@CLEARBOARD@@\"}} }}", ships, ships_remote);
+                sbQueryX.AppendFormat("{{ $set: {{ ships : {0}, hits : [], ships_remote : {1}, action : \"PLAY\",  hits_remote : [], ship_down_for : \"@@@@\", winner : \"@@@@\"}} }}", ships, ships_remote);
                 MongoUpdateOptions muo = new MongoUpdateOptions();
                 muo.Flags = UpdateFlags.Multi;
                 BsonDocument queryx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
                 UpdateDocument updateDoc = new UpdateDocument(queryx);
                 gamersDoc.Update(queryDoc, updateDoc, muo);
-                Clients.All.SendAsync("ClearMonitor", data);
+                Clients.All.SendAsync("NewGame", data);
             }
             
             return bsd.ToString();
