@@ -9,7 +9,8 @@ $(document).ready(function () {
     gUser = localStorage.getItem("game_user");
 
     hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5000/BattleHub")
+        //.withUrl("http://stiletto.ddns.net:5000/BattleHub")
+        .withUrl(domain+":5000/BattleHub")
         .build();
     
     hubConnection.on("send", data => {
@@ -24,14 +25,26 @@ $(document).ready(function () {
         getStatus();        
     });
 
-    hubConnection.on("ClearMonitor", data => {
-        console.log("*** CLEAR GAME ***", data);
-        UpdateField("ship_down_for", "@@@@", "string");
-        UpdateField("winner", "@@@@", "string");   
-        clearGameboard();     
-        getStatus();        
-        pauseClock = false;
+    hubConnection.on("NewGame", data => {
+        var datax = JSON.parse(data);
+        Polling = false;
+
+        clearGameboard();
+        
+        getStatus();   
     });
+
+    hubConnection.on("ClearMonitor", data => {
+        var datax = JSON.parse(data);
+        //console.log("*** CLEAR GAME ***", datax.gameid +" : "+gUser);
+        if(datax.gameid !== gUser)
+            ShowPlayAgainModal();
+    });
+
+    if(hubConnection.connectionState>0)
+        $("#online-img")[0].src = "images/online.png";
+    else
+        $("#online-img")[0].src = "images/offline.png";
 
     hubConnection.start().then(() => hubConnection.invoke("PlayerSetup", gUser))
     .then(datax => {
@@ -114,12 +127,12 @@ function Initialize()
         }
 
         modal.style.display = "block";    
+        $('#btn-end-game').addClass('disable')  
     }
     else
     {
         $("#hdr-cfg-local").html(gUser);
         $("#hdr-cfg-remote").html(gRemoteUser);
-
 
         getStatus();
 
@@ -149,10 +162,12 @@ var processing = true;
 var gUser = "";
 var gPswd = "";
 var gRemoteUser = "";
-var apiroot = "http://localhost/battleshipapi/api/";
-var imgroot = "http://localhost/battleship/images";
-//var apiroot = "http://stiletto.ddns.net/battleshipapi/api/";
-//var imgroot = "http://stiletto.ddns.net/battleship/images";
+var domain = "http://localhost";
+//var domain = "http://stiletto.ddns.net";
+var apiroot = domain+"/battleshipapi/api/";
+var imgroot = domain+"/battleship/images";
+// var apiroot = domain+"/battleshipapi/api/";
+// var imgroot = domain+"/battleship/images";
 var norefresh = false;
 var pauseClock = false;
 var username =  getQueryVariable("username");
@@ -202,6 +217,7 @@ var current_status = null;
 var OFFSET_FLT = 600;
 var OFFSET_HIT = 0;
 var last_data = null;
+var enable_sound = true;
 
 var aud1 = null;
 var aud2 = null;
@@ -335,7 +351,7 @@ function HideTheGameboards()
 
 function OnSelectedTab(tabView){
     
-    console.log("OnSelectedTab["+tabView+"]["+lastTab+"]");
+    //console.log("OnSelectedTab["+tabView+"]["+lastTab+"]");
 
     lastTab = tabView;
 
@@ -347,6 +363,7 @@ function OnSelectedTab(tabView){
         $("#game-tab").hide();
         $("#users-tab").hide();
         $("#help-tab").hide();
+        $("#online").hide();
         HideHitList(true);
     }
     if(tabView==="local")
@@ -358,6 +375,7 @@ function OnSelectedTab(tabView){
         $("#users-tab").hide();
         $("#help-tab").hide();
         $("#game-tab").hide();
+        $("#online").hide();
         HideHitList(false);
     }
     if(tabView==="request")
@@ -368,6 +386,7 @@ function OnSelectedTab(tabView){
         $("#users-tab").hide();
         $("#help-tab").hide();
         $("#game-tab").hide();
+        $("#online").hide();
         HideTheGameboards();
     }
     if(tabView==="active_game")
@@ -378,6 +397,7 @@ function OnSelectedTab(tabView){
         $("#request-tab").hide();
         $("#help-tab").hide();
         $("#game-tab").show();
+        $("#online").hide();
         HideTheGameboards();
     }    
     if(tabView==="users")
@@ -390,12 +410,14 @@ function OnSelectedTab(tabView){
         $("#help-tab").hide();
         $("#game-tab").show();
         $("#data").hide();
+        $("#online").hide();
         HideTheGameboards();
     }    
 
     if(tabView==="help")
     {
         console.log("Help selected");
+        $("#online").hide();
         $('.header-btn').hide();
         $("#help-tab").show();
         $("#users-tab").hide();
@@ -509,8 +531,8 @@ function createSVGObject(x, y, cell_color) {
             tooltip.html('<H1>' + "cell_"+x+"_"+y + '</H1>')
                 .style("width", "200px")
                 //.style("height",  "20px")
-                .style("left", "10px")
-                .style("top", "700px")
+                .style("left", "100px")
+                .style("top", "680px")
                 .attr("y", "20px");            
         })        
         .on("mouseout", function(d) 
@@ -564,8 +586,8 @@ function createSVGObject(x, y, cell_color) {
                 tooltip.html('<H1>' + "cell_"+x+"_"+y + '</H1>')
                     .style("width", "200px")
                     //.style("height",  "20px")
-                    .style("left", "10px")
-                    .style("top", "700px")
+                    .style("left", "100px")
+                    .style("top", "680px")
                     .attr("y", "20px");            
             })        
             .on("mouseout", function(d) 
@@ -1058,27 +1080,7 @@ function playGame(user){
             postApiAction("ISPLAYING");
         })
     }
-    /*
-    $.when( $.ajax({
-        'url': apiroot + 'startgame',
-        'data': json,
-        'type' : "POST",
-        'success': function (data)
-        {   
-            console.log("Game started for", data);  //SET ACTION TO PLAY
-        },
-        'error': function (jqXHRX, textStatus, errorThrown)
-        {
-            console.log('An error occurred in the startGame: '+ textStatus);
-        },
-        'dataType': 'json',
-        }
-    )).then(function (dataz)   //ensures this bit runs after process has completed
-    {
-        $("#hdr-cfg-remote").html(gRemoteUser);
-        postApiAction("ISPLAYING");
-    });
-    */       
+ 
 }
 
 function continueGame(user){
@@ -1176,6 +1178,9 @@ function postApiAction(cmd, info=""){
 
             if(cmd === "ENDGAME")
             {
+                isIssuer = "";
+                localStorage.setItem("remote_user", "");
+                gRemoteUser = "";    
                 console.log("*** END GAME ***", data);
                 UpdateField("ship_down_for", "@@@@", "string");
                 UpdateField("winner", "@@@@", "string");   
@@ -1306,7 +1311,7 @@ function UpdateHitlistJSON(cell){
 
             retValue = data;
             
-            console.log("Update done:", retValue);
+            //console.log("Update done:", retValue);
             TURN_CHANGE = true;
 
             hubConnection.invoke("UpdateGameBoard", gUser, gRemoteUser);
@@ -1396,7 +1401,12 @@ function getStatus(){
     
     if(hubConnection.connectionState>0)
     {
-        $("#online").show();
+        if(lastTab==="remote" || lastTab==="local")
+        {
+            $("#online-img")[0].src = "images/online.png";
+            $("#online").show();
+        }
+
         hubConnection.invoke("GetStatus", json)
         .then(datax => {
             var data = JSON.parse(datax);
@@ -1583,6 +1593,7 @@ function getStatus(){
                         REQUEST_MODE = false;
                 }
 
+                //console.log("GS: ", obj.next_player, gUser);
                 if(obj.next_player!==gUser)
                 {
                     REQUEST_MODE = false;
@@ -1647,17 +1658,20 @@ function getStatus(){
                 //console.log("** ENABLE BUTTONS **")
                 $('#btn-reset').removeClass('disable')
                 $('#btn-request').removeClass('disable')
-                $('#btn-play-again').addClass('disable')
+                $('#btn-play-again').removeClass('disable')
 
                 if(isIssuer !== "")
                     if(isIssuer!==gUser)
-                        $('#btn-end-game').removeClass('disable')
+                        $('#btn-end-game').addClass('disable')
             }
         })
     }
     else
     {
-        $("#online").hide();
+        if(lastTab==="remote" || lastTab==="local")
+        {
+            $("#online-img")[0].src = "images/offline.png";
+        }
         console.log("*** DISCONNECT FROM BATTLEHUB ***");
     }
 }
@@ -1792,11 +1806,11 @@ function getuserinfo(fromRemote=false){
             }
         });
     
+        if(gUser !== isIssuer)
+            $('#btn-end-game').addClass('disable')
+        else   
+            $('#btn-end-game').removeClass('disable') 
         
-        //if(vHit.length>prvHit.length)
-        //    splash();
-        
-      
         current_status = dataz;
         /////////////////////////////////
         
@@ -1816,9 +1830,14 @@ function getuserinfo(fromRemote=false){
             $("#percid").addClass("win");
             $("#percid")[0].innerHTML = "YOU WIN";
             PLAY_MODE = false;
-            $('#btn-play-again').removeClass('disable')
+
             if(gUser === isIssuer)
+            {
                 $('#btn-end-game').removeClass('disable')            
+                $('#btn-play-again').addClass('disable')
+            }
+            else
+                $('#btn-play-again').removeClass('disable')
         }
         else
         {
@@ -1826,12 +1845,22 @@ function getuserinfo(fromRemote=false){
             {
                 $("#percid").addClass("lose");
                 $("#percid")[0].innerHTML = "YOU LOSE";
-                PLAY_MODE = false;
+                
+                if(gUser === isIssuer)
+                    $('#btn-end-game').removeClass('disable') 
+                else   
+                    $('#btn-end-game').addClass('disable') 
+
                 if(gUser !== isIssuer)
-                    $('#btn-end-game').removeClass('disable')
+                    $('#btn-play-again').removeClass('disable')
+                else
+                    $('#btn-play-again').addClass('disable')
+
+                PLAY_MODE = false;
 
                 if(dataz.requests[0].ship_down_for === "@@PLAYAGAIN@@")
                 {
+                    /*
                     console.log("@@PLAYAGAIN@@");
                     pauseClock = true;
 
@@ -1849,6 +1878,7 @@ function getuserinfo(fromRemote=false){
 
                     modal.style.display = "block";    
                     modalFrm.style.display = "block";
+                    */
 
                 }
             }
@@ -1913,7 +1943,7 @@ function OnGameboardClick(){
     pauseClock = true;
 
     let idd = this.getAttribute("idx").replace("hit_", "cell_");;
-    console.log("idd:", idd );  
+    //console.log("idd:", idd );  
 
     UpdateHitlistJSON(idd);
 }
@@ -1938,10 +1968,13 @@ function BattleshipDown(reset){
     .then(datax => {
         var data = JSON.parse(datax);
         console.log("BattleshipDown:", data)
+        pauseClock = false;
     })
 }
 
 function ping(){
+    if(!enable_sound)
+        return;
     var playPromise = aud1.play(); 
     if (playPromise !== undefined) {
       playPromise.then(function() {
@@ -1952,6 +1985,8 @@ function ping(){
     }
 }
 function hit(){
+    if(!enable_sound)
+        return;
     var playPromise = aud2.play(); 
     if (playPromise !== undefined) {
       playPromise.then(function() {
@@ -1963,6 +1998,8 @@ function hit(){
 }
 
 function boom(){
+    if(!enable_sound)
+        return;
     var playPromise = aud3.play(); 
     if (playPromise !== undefined) {
       playPromise.then(function() {
@@ -1974,6 +2011,8 @@ function boom(){
 }
 
 function splash(){
+    if(!enable_sound)
+        return;
     var playPromise = aud4.play(); 
     if (playPromise !== undefined) {
       playPromise.then(function() {
@@ -1985,42 +2024,28 @@ function splash(){
 }
 
 function btnPlayAgain(reset){
-
-    PlayAgain();
-
-    /*
-    if(current_status.requests[0].winner === gUser )
+    if(current_status !== null)
     {
-        var json = "{";    
-        json = json + "\"user_1\":\""+isIssuer+"\",";
-        
-        if(isIssuer !== gUser)
-            json = json + "\"user_2\":\""+gUser+"\",";
-        else
-            json = json + "\"user_2\":\""+gRemoteUser+"\",";
-
-        if(reset)
-            json = json + "\"user_down\":\"@@@@@\"";
-        else
-            json = json + "\"user_down\":\"@@PLAYAGAIN@@\"";
-        json = json + "}";
-
-
+        var json = "{\"gameid\": \""+gUser+"\",\"issuer\": \""+isIssuer+"\"}";
         hubConnection.invoke("PlayAgain", json)
         .then(datax => {
             var data = JSON.parse(datax);
-             retValue = data;
-            console.log("btnPlayAgain:", data)
+            // you can access your data here
+            //console.log("HUB Response:", data)
         })
+        //PlayAgain();
     }
-    */
 }
 
 function confirm(answer){
     //console.log("confirm", answer);
 
     if(answer==="YES")
+    {
+        //postApiAction("ENDGAME");
         PlayAgain();
+
+    }
     else
     {
         ENDGAME = true;
@@ -2046,14 +2071,8 @@ function PlayAgain(){
     BuildTheFleet();
     var jx_you = buildFleetJSON();
 
-    //console.log("jx_them", jx_them);
-    //console.log("jx_you", jx_you);
-
     var json_them = JSON.stringify( JSON.parse(jx_them).ships);
     var json_you = JSON.stringify(  JSON.parse(jx_you).ships);
-
-    //console.log("json_them", json_them);
-    //console.log("json_you", json_you);
     
     var json = "{";    
     json = json + "\"user\": \""+gUser+"\",";
@@ -2083,20 +2102,22 @@ function PlayAgain(){
 
 function UpdateField(fieldname, value, value_type)
 {
-    console.log("UpdateField", fieldname, value, value_type);
+    //console.log("UpdateField", fieldname, value, value_type, current_status);
 
     clearGameboard();
 
     BuildTheFleet(true);
-    var jx_them = buildFleetJSON();
+    // var jx_them = buildFleetJSON();
 
     BuildTheFleet();
-    var jx_you = buildFleetJSON();
+    // var jx_you = buildFleetJSON();
 
-    var json_them = JSON.stringify( JSON.parse(jx_them).ships);
-    var json_you = JSON.stringify(  JSON.parse(jx_you).ships);
+    // var json_them = JSON.stringify( JSON.parse(jx_them).ships);
+    // var json_you = JSON.stringify(  JSON.parse(jx_you).ships);
 
-    
+    if(current_status === null)
+        return;
+
     var json = "{";    
     json = json + "\"game_id\":\""+current_status.requests[0].game_id+"\",";
         json = json + "\"field\": \""+fieldname+"\",";
@@ -2109,7 +2130,7 @@ function UpdateField(fieldname, value, value_type)
     .then(datax => {
         var data = JSON.parse(datax);
         // you can access your data here
-        console.log("HUB Response:", data)
+        //console.log("HUB Response:", data)
     })
 }
 
@@ -2166,16 +2187,16 @@ function myTimer()
 }   
 
 function RefreshUserList(){
-    console.log("RefreshUserList");
+    console.log("RefreshUserList", "U:"+gUser, "I:"+isIssuer, "R:"+gRemoteUser);
     angRefresh = setInterval(userTimer, 10000);
 }
 
 function userTimer()
 {
+    //console.log("Polling list", "U:"+gUser, "I:"+isIssuer, "R:"+gRemoteUser);
     norefresh = true;
     LoadUserList();
 }
-
 
 function RequestUser(userid)
 {
@@ -2193,155 +2214,16 @@ function RequestUser(userid)
         })        
     }
 }
-/*
-function LoadUserList(){
-    //console.log("Angular_loadUserList");
-    var jsonGet = apiroot+'gamers';
-    var jsonPost = apiroot+'gamers';
-    
-    gUser = localStorage.getItem("game_user");
-    
-    var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
-    
-    //Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
-    HubConnection.invoke("LoadUserList", jx)
-    .then(data => {
-        successCallback(data);
-    })
-}
-*/
-/*
-myApp.controller('MainCtrl', ['$rootScope', 'Server', function ($rootScope,Server)  {
 
-    var norefresh = false;
-    var gUser = localStorage.getItem("game_user");
-
-    //console.log("Controller");
-
-    $rootScope.angHubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://stiletto.ddns.net:5000/BattleHub")
-        .build();
-
-    $rootScope.angHubConnection.start().then(() => $rootScope.angHubConnection.invoke("AngularStart", gUser))
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        //console.log("ANG-HUB-1 Response:", data)
-        Angular_loadUserList();
-    })    
-    
-    function Angular_loadUserList(){
-        //console.log("Angular_loadUserList");
-        var jsonGet = apiroot+'gamers';
-        var jsonPost = apiroot+'gamers';
-        
-        gUser = localStorage.getItem("game_user");
-        
-        var jx = "{\"userid\" : \""+gUser+"\",\"remoteid\" : \""+gRemoteUser+"\"}";
-        
-        //Server.post(jsonPost, jx).then(successCallbackX, errorCallback);  
-        $rootScope.angHubConnection.invoke("LoadUserList", jx)
-        .then(data => {
-            successCallback(data);
-        })
-    }
-
-    function successCallback(data){
-        
-        var js = JSON.parse(data);
-
-        $rootScope.categories = js.data.gamers;
-
-        if(norefresh)
-        {
-            //console.log("norefresh", $rootScope.categories);
-            return;
-        }
-
-        $("#wait").hide();   
-        buildHitZones(0);
-        myVar = setInterval(myTimer, 5000);
-        Angular_refreshUserList();
-    }
-
-    function successCallbackX(data){
-        //console.log("successCallbackX", data);
-        $rootScope.categories = data.data.gamers;
-
-        if(norefresh)
-            return;
-
-        $("#wait").hide();   
-        buildHitZones(0);
-        myVar = setInterval(myTimer, 5000);
-        Angular_refreshUserList();
-    }
-
-    function errorCallback(err){
-        console.log("errorCallback:", err);
-    }
-
-    function myTimer()
-    {
-        if (!processing)
-            console.log('Polling Stopped');
-        else
-            if(!pauseClock)
-                getStatus();
-    }          
-
-    function userTimer()
-    {
-        norefresh = true;
-        Angular_loadUserList();
-    }
-
-    function Angular_refreshUserList(){
-        angRefresh = setInterval(userTimer, 10000);
-    }
-
-    $rootScope.requestUser = function (index, status) {
-        if(status==='INPLAY')return;
-        console.log("requestUser", index, status);
-        btnRequest('REQ', $rootScope.categories[index].game_id);
-        $rootScope.categories.splice(index, 1)
-    };    
-
-    $rootScope.listArtists = function (valx="") {
-        return function (input) {
-            if(input.game_id.indexOf(valx) != -1 )
-                return input;
-    }
-  }
-}]);
-
-
-myApp.factory('Server', ['$http', function ($http) {
-  return {
-
-    get: function(url) {
-
-      return $http.get(url);
-    },
-    
-    post: function(url, pdata) {
-      return $http.post(url, pdata);
-    },
-  };
-
-}]);
-
-*/
 function btnTest(thx){
 }
-
 
 function SinkTheShip(){
     pauseClock = true;
     //var ship_list = current_status.requests[0].ships.sort(function(a, b){return b.ship_part > a.ship_part;});
     var ship_list = current_status.requests[0].ship_hits;
     //filter the ship from the fleet
-    console.log("SinkTheShip:", ship_list);
+    console.log("SinkTheShip:");
 
     if(ship_list != undefined)
     {
@@ -2353,6 +2235,46 @@ function SinkTheShip(){
             nodeLocal.attr("xlink:href", img_sea);
         });
     }
-    
     //deepSixIt(ship_list);
+}
+
+function toggleSound(){
+    if( $("#sound-img")[0].src.indexOf("sound_on") != -1)
+    {
+        $("#sound-img")[0].src = imgroot+"/sound_off.png";
+        enable_sound = false;
+    }
+    else
+    {
+        $("#sound-img")[0].src = imgroot+"/sound_on.png";
+        enable_sound = true;
+    }
+}
+
+function ClearMonitorForNewGame(){
+    console.log("ClearMonitorForNewGame");
+    UpdateField("ship_down_for", "@@@@", "string");
+    UpdateField("winner", "@@@@", "string");   
+    clearGameboard();     
+    getStatus();        
+    pauseClock = false;    
+}
+
+function ShowPlayAgainModal(){
+    pauseClock = true;
+
+    var modal = document.getElementById('playAgainModal');
+    var modalFrm = document.getElementById('playAgainForm');
+    
+    modalFrm.onclick = function(event) {
+        modal.style.display = "none";
+        modalFrm.style.display = "none";
+    }
+    // When the user clicks anywhere outside of the modal, close it
+    modal.onclick = function(event) {
+        modal.style.display = "none";
+    }
+
+    modal.style.display = "block";    
+    modalFrm.style.display = "block";    
 }

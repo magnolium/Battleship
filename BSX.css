@@ -1093,6 +1093,10 @@ div.info_tip_1{
     color: #808080; 
 }
 
+#btn-end-game{
+    color: #FFFFFF;    
+}
+
 #btn-end-game.disable{
     color: #808080;    
 }
@@ -1196,9 +1200,14 @@ div.info_tip_1{
     position: absolute;
     top: 50%;
     left: 50%;
-    height: 100px;
+    height: 150px;
     margin-right: -50%;
-    transform: translate(-50%, -50%)    
+    transform: translate(-50%, -50%);
+    width: 250px;
+}
+
+.playagain-edit{
+    margin-left: 20px;
 }
 
 @-webkit-keyframes grow {
@@ -1299,4 +1308,24 @@ div.info_tip_1{
 
 .play-img{
     width: 80px;
-}#
+}
+
+#sound{
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+#online{
+    cursor: pointer;
+    margin-left: 20px;
+}
+
+#controls{
+    /*
+    position: absolute;
+    top: 15px;
+    margin-left: 900px;
+    
+    left: 20px;
+    */
+}

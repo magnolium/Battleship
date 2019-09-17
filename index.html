@@ -44,7 +44,6 @@
 
             <div id="hdr-cfg-local" class="cfg-local"></div>
             <div id="hdr-cfg-remote" class="cfg-remote"></div>
-
             <div id="action_wait" class="playing" style="visibility: hidden;">
                 <img src="images/LoadingWheel.gif" height="20px" width="20px" class="cursor"/>
             </div>            
@@ -57,19 +56,20 @@
 
 
         <div id="main-canvas" class="tab-content">
-          <ul class="nav nav-tabs">
-              <li id="id_local"><a data-toggle="tab" id="localX" href="#local">FLEET</a></li>
-              <li id="id_remote"><a data-toggle="tab" id="remoteX" href="#remote">HIT LIST</a></li>
-              <li id="id_request"><a data-toggle="tab" id="requestX" href="#request">Request</a></li>
-              <li id="id_active_game"><a data-toggle="tab" id="activeX" href="#active_game">Active Games</a></li>
-              <li id="id_users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
-              <li id="id_help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
-          </ul>
-
+            <ul class="nav nav-tabs">
+                <li id="id_local"><a data-toggle="tab" id="localX" href="#local">FLEET</a></li>
+                <li id="id_remote"><a data-toggle="tab" id="remoteX" href="#remote">HIT LIST</a></li>
+                <li id="id_request"><a data-toggle="tab" id="requestX" href="#request">Request</a></li>
+                <li id="id_active_game"><a data-toggle="tab" id="activeX" href="#active_game">Active Games</a></li>
+                <li id="id_users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
+                <li id="id_help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
+            </ul>
           <div id="local" class="tab-pane fade in active">
           </div>
 
           <div id="data" class="sea"></div>  
+
+
 
           <div id="btn-group" style="float:left;display:inline">
               <!--
@@ -86,9 +86,10 @@
               -->         
               <div id="btn-play-again" class="block horizontal publish_btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish_span_btn">Play Again</span></div>
               <div id="btn-percentage" class="block horizontal status_btn header-btn"><span id="percid" class="publish_span_btn">0</span></div>
-              <div id="sendmessage" class="block horizontal publish_btn header-btn"><span class="publish_span_btn">Send</span></div>
+  
+              <div id="sound" class="block horizontal" onclick="javascript:toggleSound();"><img id="sound-img" border="0" src="images/sound_on.png" alt="sound" height="25"/></div>
+              <div id="online" class="block horizontal"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
               
-              <div id="online" class="block horizontal"><img border="0" src="images/online.png" alt="online" height="40"/></div>
           </div>
 
           <script>
@@ -195,8 +196,7 @@
                 </div>
               </div>
               -->
-            </div>  
-          
+            </div>
           </div>
 
           <div id="help" class="tab-pane">
