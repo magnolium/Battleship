@@ -86,10 +86,15 @@ namespace SignalR.Server.Hubs
                 sb.Clear();
                 if (gamers != null)
                 {
+
+                    IEnumerable<BsonDocument> query = from gamer in gamers
+                                                      orderby gamer.GetElement("game_id").Value.ToString()
+                                                      select gamer;
+
                     sb.AppendFormat("{{\"data\" : {{\"gamers\": [");
                     int i = 0;
 
-                    foreach (BsonDocument bsd in gamers)
+                    foreach (BsonDocument bsd in query)
                     {
                         bsd.RemoveAt(0);
 
@@ -367,7 +372,7 @@ namespace SignalR.Server.Hubs
             StringBuilder json = new StringBuilder();
 
             sb.AppendFormat("{{}}");
-            json.AppendFormat("{{ \"action\" : \"{0}\", \"user_1\" : \"{1}\", \"user_2\" : \"{2}\" }}", command, user_1, user_2);
+            json.AppendFormat("{{ \"action\" : \"{0}\", \"user_1\" : \"{1}\", \"user_2\" : \"{2}\",  }}", command, user_1, user_2);
 
 
             db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
@@ -558,7 +563,17 @@ namespace SignalR.Server.Hubs
                     MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
                     BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
                     QueryDocument queryDoc = new QueryDocument(queryX);
-                    gamersDoc.Remove(queryDoc);
+
+                    MongoCursor<BsonDocument> gamers = gamersDoc.Find(queryDoc);
+                    List<BsonDocument> game = gamers.ToList();
+                    if (game.Count() > 0)
+                    {
+                        var game_id = game[0].GetElement("game_id").Value.ToString();
+                        sb.AppendFormat("{{}}");
+                        json.AppendFormat("{{ \"game_id\" : \"{0}\", \"action\" : \"{1}\", \"user_1\" : \"{2}\", \"user_2\" : \"{3}\",  }}", game_id, command, user_1, user_2);
+
+                        gamersDoc.Remove(queryDoc);
+                    }
                 }
                 catch (Exception ex)
                 {
