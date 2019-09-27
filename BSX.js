@@ -21,12 +21,17 @@ $(document).ready(function () {
 
     hubConnection.on("UpdateGameBoard", data => {
         //console.log("JV-UpdateGameBoard:", gUser, gRemoteUser, data);
+        console.log("UpdateGameBoard:", data);
         clientId = data;
         getStatus();        
     });
 
     hubConnection.on("NewGame", data => {
+
         var datax = JSON.parse(data);
+        
+        console.log("NewGame:", datax);
+
         Polling = false;
 
         clearGameboard();
@@ -37,8 +42,10 @@ $(document).ready(function () {
     hubConnection.on("ClearMonitor", data => {
         var datax = JSON.parse(data);
         //console.log("*** CLEAR GAME ***", datax.gameid +" : "+gUser);
-        if(datax.gameid !== gUser)
+        if(datax.gameid.indexOf(gUser) != -1)
+        {
             ShowPlayAgainModal();
+        }
     });
 
     if(hubConnection.connectionState>0)
@@ -83,7 +90,6 @@ function Initialize()
     else
         device_mode = "PC";
     
-            
     window.mobilecheck = function() {
       var check = false;
       (function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
@@ -218,7 +224,7 @@ var OFFSET_FLT = 600;
 var OFFSET_HIT = 0;
 var last_data = null;
 var enable_sound = true;
-
+var last_list;
 var aud1 = null;
 var aud2 = null;
 var aud3 = null;
@@ -243,7 +249,7 @@ function showLabel(txt){
   var retval = txt;
   return retval;
 }
-
+/*
 function SelectView(view){
     var idd = "";
 
@@ -259,13 +265,8 @@ function SelectView(view){
     var e = document.getElementById(idd);   
     e.style.backgroundColor = "white" 
     e.style.color = "#2B6077";
-    ShowView(view);
 }
-
-function ShowView(view)
-{
-}
-
+*/
 function getQueryVariable(variable)
 {
        var query = window.location.search.substring(1);
@@ -1181,9 +1182,10 @@ function postApiAction(cmd, info=""){
                 isIssuer = "";
                 localStorage.setItem("remote_user", "");
                 gRemoteUser = "";    
-                console.log("*** END GAME ***", data);
+                console.log("*** END GAME ***", retValue);
                 UpdateField("ship_down_for", "@@@@", "string");
-                UpdateField("winner", "@@@@", "string");   
+                UpdateField("winner", "@@@@", "string"); 
+                 console.log("-----------------------------");
                 clearGameboard();     
                 getStatus();        
                 pauseClock = false;
@@ -1327,7 +1329,7 @@ function UpdateHitlistJSON(cell){
 
 function clearGameboard(){
     //Clear the gameboard
-    //console.log("Clear the board");
+    console.log("clearGameboard");
 
     buildHitZones(0);
     
@@ -1354,6 +1356,7 @@ function clearGameboard(){
     $("#hdr-cfg-remote").html(gRemoteUser);            
 
 }
+
 function gotoHitlist(){
     var idd = "#id_"+lastTab;
     $(idd).removeClass("active");
@@ -1423,7 +1426,7 @@ function getStatus(){
             {
                 if(data.requests.length === 0)  //Clear the board
                 {
-                    //console.log("No gameboard activity detected");
+                    console.log("No gameboard activity detected");
 
                     $("#requestX")[0].innerHTML = "Requests";
                     $("#activeX")[0].innerHTML = "Active Games";
@@ -1571,9 +1574,9 @@ function getStatus(){
                     var tddata = "";
 
                     if(gUser === obj.user_1)
-                        tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
+                        tddata = '<div id="btx-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
                     else
-                        tddata = '<div id="btn-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
+                        tddata = '<div id="btx-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
 
                     $("#game-tab").append(tddata);
                 }
@@ -1857,30 +1860,6 @@ function getuserinfo(fromRemote=false){
                     $('#btn-play-again').addClass('disable')
 
                 PLAY_MODE = false;
-
-                if(dataz.requests[0].ship_down_for === "@@PLAYAGAIN@@")
-                {
-                    /*
-                    console.log("@@PLAYAGAIN@@");
-                    pauseClock = true;
-
-                    var modal = document.getElementById('playAgainModal');
-                    var modalFrm = document.getElementById('playAgainForm');
-                    
-                    modalFrm.onclick = function(event) {
-                        //modal.style.display = "none";
-                        //modalFrm.style.display = "none";
-                    }
-                    // When the user clicks anywhere outside of the modal, close it
-                    modal.onclick = function(event) {
-                        //modal.style.display = "none";
-                    }
-
-                    modal.style.display = "block";    
-                    modalFrm.style.display = "block";
-                    */
-
-                }
             }
         }
 
@@ -2029,22 +2008,14 @@ function btnPlayAgain(reset){
         var json = "{\"gameid\": \""+gUser+"\",\"issuer\": \""+isIssuer+"\"}";
         hubConnection.invoke("PlayAgain", json)
         .then(datax => {
-            var data = JSON.parse(datax);
-            // you can access your data here
-            //console.log("HUB Response:", data)
         })
-        //PlayAgain();
     }
 }
 
 function confirm(answer){
-    //console.log("confirm", answer);
-
     if(answer==="YES")
     {
-        //postApiAction("ENDGAME");
         PlayAgain();
-
     }
     else
     {
@@ -2062,9 +2033,6 @@ function confirm(answer){
 
 function PlayAgain(){
     //console.log("PlayAgain", current_status);
-
-    //clearGameboard();
-
     BuildTheFleet(true);
     var jx_them = buildFleetJSON();
 
@@ -2090,30 +2058,18 @@ function PlayAgain(){
     }
     json = json + "}";
 
-    //console.log(json);
-
     hubConnection.invoke("RestartGame", json)
     .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        //console.log("HUB Response:", data)
     })
 }
 
 function UpdateField(fieldname, value, value_type)
 {
-    //console.log("UpdateField", fieldname, value, value_type, current_status);
-
     clearGameboard();
 
     BuildTheFleet(true);
-    // var jx_them = buildFleetJSON();
 
     BuildTheFleet();
-    // var jx_you = buildFleetJSON();
-
-    // var json_them = JSON.stringify( JSON.parse(jx_them).ships);
-    // var json_you = JSON.stringify(  JSON.parse(jx_you).ships);
 
     if(current_status === null)
         return;
@@ -2127,11 +2083,7 @@ function UpdateField(fieldname, value, value_type)
 
 
     hubConnection.invoke("UpdateField", json)
-    .then(datax => {
-        var data = JSON.parse(datax);
-        // you can access your data here
-        //console.log("HUB Response:", data)
-    })
+    .then(datax => {})
 }
 
 function LoadUserList(){
@@ -2155,13 +2107,20 @@ function SuccessCallback(data){
 
     $("#user-list").html("");
 
-    $.each(js.data.gamers, function (i, obj)
+    if(last_list != js.data.gamers)
     {
-        //console.log(obj);
-        //q++;
-        var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish_play_btn" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play block repel">' + obj.game_id + '</div><div class="play-img"><img src="images/play.png"></div></div>';
-        $("#user-list").append(tddata);
-    });
+        $.each(js.data.gamers, function (i, obj)
+        {
+            console.log(obj);
+            //q++;
+            var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div></div>';
+            $("#user-list").append(tddata);
+        });
+    }
+
+    filterGamers();
+
+    last_list = js.data.gamers;
 
     if(norefresh)
     {
@@ -2174,7 +2133,6 @@ function SuccessCallback(data){
     myVar = setInterval(myTimer, 5000);
     RefreshUserList();
 }
-
 
 function myTimer()
 {
@@ -2215,9 +2173,6 @@ function RequestUser(userid)
     }
 }
 
-function btnTest(thx){
-}
-
 function SinkTheShip(){
     pauseClock = true;
     //var ship_list = current_status.requests[0].ships.sort(function(a, b){return b.ship_part > a.ship_part;});
@@ -2235,7 +2190,6 @@ function SinkTheShip(){
             nodeLocal.attr("xlink:href", img_sea);
         });
     }
-    //deepSixIt(ship_list);
 }
 
 function toggleSound(){
@@ -2277,4 +2231,39 @@ function ShowPlayAgainModal(){
 
     modal.style.display = "block";    
     modalFrm.style.display = "block";    
+}
+
+function HighlightOn(item)
+{
+    var id = "#"+item;
+    $(id).addClass("highlight");
+}
+
+function HighlightOff(item)
+{
+    var id = "#"+item;
+    $(id).removeClass("highlight");
+}
+
+function filterGamers()
+{
+    console.log("filterGamers");
+
+    $(".select-group").each(function (i, objx)
+    {
+        var iddx = '#' + objx.id;
+        var idd = objx.id.toUpperCase();
+        var txt = document.getElementById("gamer-filter");
+        var flt = txt.value.toUpperCase();
+        //console.log(idd, txt.value.toUpperCase());
+        
+        if(idd.substring(4).indexOf(flt) === -1)
+        {
+            $(iddx).addClass("hide-user-name");
+        }
+        else
+        {
+            $(iddx).removeClass("hide-user-name");
+        }
+    });
 }

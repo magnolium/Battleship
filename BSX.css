@@ -210,13 +210,13 @@ tbody {
     
 }
 
-.fg_highlight {
+.fg-highlight {
     background-color:transparent;
     background-color: #0000ff;
     color: yellow;
 }
 
-.bg_highlight {
+.bg-highlight {
     border:none;
     /*background-color: #0000ff;*/
     width: 800px;
@@ -366,7 +366,7 @@ tr.inactive {
      text-align:left;
 }
 
-.message_btn{
+.message-btn{
 
     font-size: 16px;
     font-family:'Dinot-Light';
@@ -386,12 +386,13 @@ tr.inactive {
     margin-bottom: 7px;
     margin-right: 20px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 
 }
 
 
-.publish_btn.primary{
+.publish-btn.primary{
     margin-top: 5px;
     background: #6ea02d;
     border-color: #6ea02d;    
@@ -436,7 +437,7 @@ label {
 .eye-icon {
     position:relative; 
 }
-.view_btn {
+.view-btn {
     position:relative;
     font-size: 16px;
     font-family:'Dinot-Light';
@@ -454,10 +455,11 @@ label {
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.base_btn {
+.base-btn {
     position:relative;
     font-size: 16px;
     font-family:'Dinot-Light';
@@ -476,6 +478,7 @@ label {
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
@@ -491,6 +494,7 @@ label {
     border-left-width: 1px;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 .in-menu{
@@ -581,11 +585,11 @@ label {
   margin-top: auto;
   margin-left: 0;
 }
-.visible_normal{
+.visible-normal{
     background-color: #90ee90;    
 }
 
-.hidden_normal{
+.hidden-normal{
     background-color: lightgrey;    
 }
 
@@ -739,6 +743,7 @@ h1{
 .modal-body {
     padding: 25px;
     text-align: -webkit-center;
+    text-align:-moz-center;
 }
 /* GO LIVE */
 
@@ -768,7 +773,7 @@ h1{
   stroke: #000;
 }
 
-div.info_tip_1{
+div.info-tip-1{
     font-weight:800;
     font-style:italic;
     color: blue;
@@ -787,7 +792,7 @@ div.info_tip_1{
     margin-top: 20px;
 }
 
-.publish_btn
+.publish-btn
 {
     position:relative;
     font-size: 16px;
@@ -808,10 +813,11 @@ div.info_tip_1{
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.status_btn
+.status-btn
 {
     position:relative;
     font-size: 16px;
@@ -833,10 +839,11 @@ div.info_tip_1{
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.publish_request_btn
+.publish-request-btn
 {
     position:relative;
     font-size: 16px;
@@ -859,16 +866,17 @@ div.info_tip_1{
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.publish_play_btn
+.publish-play-btn
 {
     position:relative;
     font-size: 16px;
     font-family:'Dinot-Light';
     font-weight: 800;
-    height:35px;
+    height:36px;
     width: 250px;
     border-radius: 4px;
     z-index: 9;
@@ -890,7 +898,7 @@ div.info_tip_1{
     line-height: 30px;
 }
 
-.publish_playing_btn
+.publish-playing-btn
 {
     position:relative;
     font-size: 16px;
@@ -913,10 +921,11 @@ div.info_tip_1{
     box-shadow: 4px 4px 4px #999;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.publish_action_btn
+.publish-action-btn
 {
     position:absolute;
     font-size: 16px;
@@ -940,10 +949,11 @@ div.info_tip_1{
     border-left-width: 1px;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.publish_status_btn
+.publish-status-btn
 {
     position:absolute;
     font-size: 16px;
@@ -967,10 +977,11 @@ div.info_tip_1{
     border-left-width: 1px;
     margin-bottom: 7px;
     text-align: -webkit-center;
+    text-align:-moz-center;
     cursor: pointer;
 }
 
-.publish_span_btn{
+.publish-span-btn{
     position:relative;
     display: block;
     text-align: center;
@@ -982,7 +993,7 @@ div.info_tip_1{
     color: : yellow;
 }
 
-.status_span_btn{
+.status-span-btn{
     position:relative;
     display: block;
     text-align: center;
@@ -992,7 +1003,7 @@ div.info_tip_1{
     z-index: 10;
 }
 
-.login_span_btn{
+.login-span-btn{
     display: block;
     line-height:30px;
     position:relative;
@@ -1065,7 +1076,7 @@ div.info_tip_1{
 
 }
 
-#active_game{
+#active-game{
     position: absolute;
     top: 60px;
     left: 15px;
@@ -1073,13 +1084,13 @@ div.info_tip_1{
 
 }
 
-#action_wait{
+#action-wait{
     position: absolute;
     top: 33px;
     left: 205px;    
 }
 
-#action_status{
+#action-status{
     position: relative;
     top: -3px;
     left: -28px;   
@@ -1156,18 +1167,8 @@ div.info_tip_1{
     float: right;
 }
 
-.users-tab{
-    /*width: 500px;*/
-}
-/* ANGULAR END */
 
-#users{
-    z-index: 9;
-    position: absolute;
-    top: 30px;    
-    left: 10px;
-    width: 500px;
-}
+/* ANGULAR END */
 
 #hdr-config{
     z-index: 9;
@@ -1253,14 +1254,14 @@ div.info_tip_1{
     
 }
 */
-.help_font {
+.help-font {
     float: right;
     font-size: 20px;
     font-weight: normal;
     font-style: italic;
 }
 
-#help_text{
+#help-text{
     position: relative;
     left: 15px;
     width: 400px;
@@ -1278,36 +1279,20 @@ div.info_tip_1{
     display:inline;
 }
 
-.hide_user img{
+/*
+.hide-user img{
     opacity: .1;
 }
-.hide_user{
+
+.hide-user{
     color: lightgray;
 }
+*/
 
 #user-find{
     position: relative;
     top: 20px;
-}
-
-#user-list{
-    width: 420px;
-    overflow-y: scroll;
-    height: 550px;
-}
-
-.select-group{
-    width: 400px;
-    display: flex;
-}
-
-.user-play{
     width: 300px;
-    align-items: left;
-}
-
-.play-img{
-    width: 80px;
 }
 
 #sound{
@@ -1328,4 +1313,69 @@ div.info_tip_1{
     
     left: 20px;
     */
+}
+
+.highlight{
+    border-color: green;
+    border-width: thin;
+    color: green;
+}
+
+#gamer-filter{
+    font-weight:normal;
+    font-style:italic;
+    color: blue;    
+    font-size: 18px;
+    width: 300px;
+}
+
+.gamers-panel{
+    display: inline-flex;
+    width: 100%;
+}
+
+#users{
+    z-index: 9;
+    position: absolute;
+    top: 30px;    
+    left: 10px;
+    width: 100%;
+}
+
+.users-tab{
+    width: 100%;
+}
+
+#user-list{
+    display: inline-table;
+    width: 100%;
+    /*
+    width: 420px;
+    overflow-y: scroll;
+    height: 550px;
+    */
+}
+
+.select-group{
+    width: 150px;
+    height: 150px;
+    display:inline-block;
+    /*
+    width: 400px;
+    display: flex;
+    */
+}
+
+
+.user-play{
+    text-align:-moz-center;
+    text-align: -webkit-center;
+}
+
+.play-img{
+    width: 80px;
+}
+
+.hide-user-name{
+    display: none;
 }

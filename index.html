@@ -44,7 +44,7 @@
 
             <div id="hdr-cfg-local" class="cfg-local"></div>
             <div id="hdr-cfg-remote" class="cfg-remote"></div>
-            <div id="action_wait" class="playing" style="visibility: hidden;">
+            <div id="action-wait" class="playing" style="visibility: hidden;">
                 <img src="images/LoadingWheel.gif" height="20px" width="20px" class="cursor"/>
             </div>            
             <h1><span id="page-title" class="" style="font-weight: normal;font-size: 18px;">BATTLESHIP DOWN</span></h1>
@@ -57,12 +57,12 @@
 
         <div id="main-canvas" class="tab-content">
             <ul class="nav nav-tabs">
-                <li id="id_local"><a data-toggle="tab" id="localX" href="#local">FLEET</a></li>
-                <li id="id_remote"><a data-toggle="tab" id="remoteX" href="#remote">HIT LIST</a></li>
-                <li id="id_request"><a data-toggle="tab" id="requestX" href="#request">Request</a></li>
-                <li id="id_active_game"><a data-toggle="tab" id="activeX" href="#active_game">Active Games</a></li>
-                <li id="id_users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
-                <li id="id_help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
+                <li id="id-local"><a data-toggle="tab" id="localX" href="#local">FLEET</a></li>
+                <li id="id-remote"><a data-toggle="tab" id="remoteX" href="#remote">HIT LIST</a></li>
+                <li id="id-request"><a data-toggle="tab" id="requestX" href="#request">Request</a></li>
+                <li id="id-active-game"><a data-toggle="tab" id="activeX" href="#active-game">Active Games</a></li>
+                <li id="id-users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
+                <li id="id-help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
             </ul>
           <div id="local" class="tab-pane fade in active">
           </div>
@@ -73,19 +73,19 @@
 
           <div id="btn-group" style="float:left;display:inline">
               <!--
-              <div id="btn-test" class="block horizontal publish_btn header-btn" onclick="javascript:btnTest();"><span class="publish_span_btn">TEST</span></div>
+              <div id="btn-test" class="block horizontal publish-btn header-btn" onclick="javascript:btnTest();"><span class="publish-span-btn">TEST</span></div>
               -->
-              <div id="btn-status" class="block horizontal status_btn header-btn" onclick="javascript:gotoHitlist();"><span id="userturn" class="publish_span_btn">Not Playing</span></div>
-              <div id="btn-end-game" class="block horizontal publish_btn header-btn" onclick="javascript:btnEndGame();"><span class="publish_span_btn">End Game</span></div>
+              <div id="btn-status" class="block horizontal status-btn header-btn" onclick="javascript:gotoHitlist();"><span id="userturn" class="publish-span-btn">Not Playing</span></div>
+              <div id="btn-end-game" class="block horizontal publish-btn header-btn" onclick="javascript:btnEndGame();"><span class="publish-span-btn">End Game</span></div>
               <!--
               <div id="gamers-dropdown" class="block horizontal control header-btn">
                 <select class="gamers-menu" id="gamer-item" name="menu" onchange="javascript:selectRemoteUser();">
-                    <option value="" selected id="no_select">(Select Remote User)</option>
+                    <option value="" selected id="no-select">(Select Remote User)</option>
                 </select>
               </div>     
               -->         
-              <div id="btn-play-again" class="block horizontal publish_btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish_span_btn">Play Again</span></div>
-              <div id="btn-percentage" class="block horizontal status_btn header-btn"><span id="percid" class="publish_span_btn">0</span></div>
+              <div id="btn-play-again" class="block horizontal publish-btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish-span-btn">Play Again</span></div>
+              <div id="btn-percentage" class="block horizontal status-btn header-btn"><span id="percid" class="publish-span-btn">0</span></div>
   
               <div id="sound" class="block horizontal" onclick="javascript:toggleSound();"><img id="sound-img" border="0" src="images/sound_on.png" alt="sound" height="25"/></div>
               <div id="online" class="block horizontal"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
@@ -167,7 +167,7 @@
             </div>  
           </div>
 
-          <div id="active_game" class="tab-pane">
+          <div id="active-game" class="tab-pane">
             <div id="game-tab" class="users" style="float:left;display:inline">
               
             </div>  
@@ -176,33 +176,17 @@
           <div id="users" class="tab-pane">
             <div id="users-tab" class="users" style="float:left;display:inline">
               <div id="user-find">
-                <input type="text" placeholder="Enter username"/><br>
+                <input id="gamer-filter" type="text" placeholder="Enter username" onkeyup="filterGamers()"/><br>
               </div>
-              <div id="user-list" class="categories">
+              <div id="user-list" class="gamers-panel">
               </div>  
-              <!--
-              <div id="users-ang" ng-app="myApp">
-                  <div class="inbox" ng-controller="MainCtrl">
-                    <div class="categories">
-                      <br>
-                      <input type="text" ng-model="myModel" placeholder="Enter username" />
-                      <ul>
-                        <li ng-class="{hide_user: cat.status === 'INPLAY'}" ng-repeat="cat in categories | filter:listArtists( myModel )">
-                            {{cat.game_id}}
-                          <a ng-click="requestUser($index, cat.status)" href=""><img src="images/play.png"></a>
-                        </li>
-                      </ul>
-                    </div>
-                </div>
-              </div>
-              -->
             </div>
           </div>
 
           <div id="help" class="tab-pane">
             <div id="help-tab" class="users" style="float:left;display:inline">
               <p>
-                <div id="help_text" class="help_font">
+                <div id="help-text" class="help-font">
                 To start a game click on the <b>Users</b> tab at the top 
                 and select a player from the list by clicking on their play button.<a><img src="images/play.png"></a><br><br>
 
@@ -253,12 +237,12 @@
           <div class="login-edit">
               <form id="loginid">
                   <div class="input-group">
-                      <div id="base_input" class="form-group">
-                          <input  type="text" class="form-control" placeholder="username" id="login_username" value=""><br>
-                          <input  type="password" class="form-control" placeholder="password" id="login_password" value=""><br>
+                      <div id="base-input" class="form-group">
+                          <input  type="text" class="form-control" placeholder="username" id="login-username" value=""><br>
+                          <input  type="password" class="form-control" placeholder="password" id="login-password" value=""><br>
                           <div id="btn-row" style="height:100%;float:center;display:inline">
-                            <div id="btn-submit-1" class="block horizontal horizontal publish_btn" onclick="javascript:validateLogin('NEW');"><span id="span-submit-1" class="login_span_btn">New</span></div>
-                            <div id="btn-submit-2" class="block horizontal horizontal publish_btn" onclick="javascript:validateLogin('EXISTS');"><span id="span-submit-2" class="login_span_btn">Already Exist</span></div>
+                            <div id="btn-submit-1" class="block horizontal horizontal publish-btn" onclick="javascript:validateLogin('NEW');"><span id="span-submit-1" class="login-span-btn">New</span></div>
+                            <div id="btn-submit-2" class="block horizontal horizontal publish-btn" onclick="javascript:validateLogin('EXISTS');"><span id="span-submit-2" class="login-span-btn">Already Exist</span></div>
                           </div>
                           <div id="messageid" class="msg"></div>
                       </div>
@@ -275,8 +259,8 @@
               <form id="playagainid">
                 <div class="form-group">
                     <div id="btn-row" style="height:100%;float:center;display:inline">
-                      <div id="btn-submit" class="block horizontal horizontal publish_btn" onclick="javascript:confirm('YES');"><span class="login_span_btn">Yes</span></div>
-                      <div id="btn-submit" class="block horizontal horizontal publish_btn" onclick="javascript:confirm('NO');"><span class="login_span_btn">No</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal publish-btn" onclick="javascript:confirm('YES');"><span class="login-span-btn">Yes</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal publish-btn" onclick="javascript:confirm('NO');"><span class="login-span-btn">No</span></div>
                     </div>
 
                 </div>
