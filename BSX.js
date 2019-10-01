@@ -249,24 +249,8 @@ function showLabel(txt){
   var retval = txt;
   return retval;
 }
-/*
-function SelectView(view){
-    var idd = "";
 
-    //reset all highlighted buttons
-    for (var i=0;i<views_data.length;i++) {
-        idd = "btn-" + views_data[i];
-        var e = document.getElementById(idd); 
-        e.style.backgroundColor = "#2B6077" 
-        e.style.color = "#FFFFFF";
-    }
 
-    idd = "btn-" + view;
-    var e = document.getElementById(idd);   
-    e.style.backgroundColor = "white" 
-    e.style.color = "#2B6077";
-}
-*/
 function getQueryVariable(variable)
 {
        var query = window.location.search.substring(1);
@@ -299,6 +283,11 @@ function getStyle(style, node)
       });
       
   }
+}
+
+function Test(evt)
+{
+    GetImage(gUser, "#profile_image");
 }
 
 function HideHitList(b_hide)
@@ -1564,7 +1553,7 @@ function getStatus(){
                 if(obj.user_2 === gUser && obj.action==="REQ")
                 {
                     q++;
-                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish-request-btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span></div>';
+                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block select-group publish-play-btn block"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="req_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="ZZZ" height="100"/></div></div>';
                     $("#request-tab").append(tddata);
                     
                 }
@@ -1574,13 +1563,21 @@ function getStatus(){
                 {
                     k++;
                     var tddata = "";
-
+                    var userid;
                     if(gUser === obj.user_1)
-                        tddata = '<div id="btx-' + obj.user_2 + '" class="block publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span></div>';
+                    {
+                        userid = obj.user_2;
+                        tddata = '<div id="btx-' + obj.user_2 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="XXX" height="100"/></div></div>';
+                    }
                     else
-                        tddata = '<div id="btx-' + obj.user_1 + '" class="block publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span></div>';
+                    {
+                        userid = obj.user_1;
+                        tddata = '<div id="btx-' + obj.user_1 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_1+'" class="profile-pic" border="0" src="" alt="YYY" height="100"/></div></div>';
+                    }
 
                     $("#game-tab").append(tddata);
+
+                    GetImage(userid, "#img_"+userid);
                 }
                 
                 //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
@@ -2107,22 +2104,22 @@ function SuccessCallback(data){
     //console.log("SuccessCallback");
     var js = JSON.parse(data);
 
-    $("#user-list").html("");
-
-    if(last_list != js.data.gamers)
+    if(last_list != JSON.stringify( js.data.gamers))
     {
+        $("#user-list").html("");
+
+        console.log("SuccessCallback");
+
         $.each(js.data.gamers, function (i, obj)
         {
-            //console.log(obj);
-            //q++;
-            var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div></div>';
+            var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div><div class="profile-pic-usr"><img id="usr_'+obj.game_id+'"  border="0" src="" alt="QQQ" height="100"/></div></div>';
             $("#user-list").append(tddata);
+            GetImage(obj.game_id, "#usr_"+obj.game_id);
         });
     }
+    last_list = JSON.stringify(js.data.gamers);
 
     filterGamers();
-
-    last_list = js.data.gamers;
 
     if(norefresh)
     {
@@ -2249,7 +2246,7 @@ function HighlightOff(item)
 
 function filterGamers()
 {
-    console.log("filterGamers");
+    //console.log("filterGamers");
 
     $(".select-group").each(function (i, objx)
     {
@@ -2354,4 +2351,19 @@ function SendData(page, arr, s, e, filename, size, max_size, type){
             //console.log("HUB Response:", data)
         })
     }    
+}
+
+function GetImage(file, id)
+{
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("RetrieveImage", file)
+        .then(datax => {
+            var img = "data:image/jpeg;base64," + datax;
+            if($(id)[0] !== undefined)
+            {
+                $(id)[0].src = img;
+            }
+        })
+    } 
 }

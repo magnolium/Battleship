@@ -1359,7 +1359,7 @@ div.info-tip-1{
 .select-group{
     width: 150px;
     height: 150px;
-    display:inline-block;
+    display:inherit;
     /*
     width: 400px;
     display: flex;
@@ -1387,6 +1387,13 @@ div.info-tip-1{
     cursor: pointer;
 }
 
+#avatar-caption{
+    position: relative;
+    top: 40px;  
+    left: 35px;
+    cursor: pointer;
+}
+
 .upload{
     position: relative;
     top: 20px;  
@@ -1395,4 +1402,14 @@ div.info-tip-1{
 
 #file-input{
     display: none;
+}
+
+.profile-pic-act{
+    position: relative;
+    top: -120px;
+}
+
+.profile-pic-usr{
+    text-align:-moz-center;
+    text-align: -webkit-center;    
 }
