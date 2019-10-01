@@ -1301,7 +1301,6 @@ div.info-tip-1{
 }
 
 #online{
-    cursor: pointer;
     margin-left: 20px;
 }
 
@@ -1347,6 +1346,7 @@ div.info-tip-1{
 }
 
 #user-list{
+    margin-top: 40px;
     display: inline-table;
     width: 100%;
     /*
@@ -1377,5 +1377,22 @@ div.info-tip-1{
 }
 
 .hide-user-name{
+    display: none;
+}
+
+.avatar{
+    position: relative;
+    top: 30px;  
+    left: 20px;
+    cursor: pointer;
+}
+
+.upload{
+    position: relative;
+    top: 20px;  
+    left: 50px;
+}
+
+#file-input{
     display: none;
 }

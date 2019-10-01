@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +11,7 @@ using MongoDB.Driver;
 using Microsoft.AspNetCore.SignalR;
 using System.Text;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 
 namespace SignalR.Server.Hubs
@@ -570,6 +573,7 @@ namespace SignalR.Server.Hubs
                     {
                         var game_id = game[0].GetElement("game_id").Value.ToString();
                         sb.AppendFormat("{{}}");
+                        json.Clear();
                         json.AppendFormat("{{ \"game_id\" : \"{0}\", \"action\" : \"{1}\", \"user_1\" : \"{2}\", \"user_2\" : \"{3}\",  }}", game_id, command, user_1, user_2);
 
                         gamersDoc.Remove(queryDoc);
@@ -1185,6 +1189,34 @@ namespace SignalR.Server.Hubs
             //    Clients.Client(str).SendAsync("UpdateGameBoard", user, remote);
 
             Clients.All.SendAsync("UpdateGameBoard", user, remote);
+        }
+
+        static byte[] total_bytes;
+        public void Avatar(int page, Newtonsoft.Json.Linq.JObject data, int start, int end, string name, int size, int max_size, string type)
+        {
+            if(page == 0)
+            {
+                total_bytes = new byte[max_size];
+            }
+
+            for (int i=0; i<size; i++)
+            {
+                byte b = (byte)data.GetValue(i.ToString());
+                total_bytes.SetValue(b, (start + i));
+            }
+
+            if (max_size == -1)
+            {
+                Debug.WriteLine("Finished");
+                MemoryStream ms = new MemoryStream(total_bytes);
+                using (Image image = Image.FromStream(ms))
+                {
+                    if (type == "image/jpeg") image.Save($"avatars/{name}.jpg", ImageFormat.Jpeg);
+                    if (type == "image/png") image.Save($"avatars/{name}.png", ImageFormat.Png);
+                    if (type == "image/bmp") image.Save($"avatars/{name}.bmp", ImageFormat.Bmp);
+                    if (type == "image/gif") image.Save($"avatars/{name}.gif", ImageFormat.Gif);
+                }
+            }
         }
 
         public static class UserHandler

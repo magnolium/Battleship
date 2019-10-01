@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNet.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalR.Server.Hubs;
@@ -57,6 +58,7 @@ namespace SignalR.Server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            GlobalHost.Configuration.MaxIncomingWebSocketMessageSize = null;
             //var builder = new ConfigurationBuilder()
             //    .SetBasePath(env.ContentRootPath)
             //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)

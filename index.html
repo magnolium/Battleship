@@ -88,7 +88,7 @@
               <div id="btn-percentage" class="block horizontal status-btn header-btn"><span id="percid" class="publish-span-btn">0</span></div>
   
               <div id="sound" class="block horizontal" onclick="javascript:toggleSound();"><img id="sound-img" border="0" src="images/sound_on.png" alt="sound" height="25"/></div>
-              <div id="online" class="block horizontal"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
+              <div id="online" class="block horizontal" onclick="javascript:Test();"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
               
           </div>
 
@@ -175,9 +175,14 @@
 
           <div id="users" class="tab-pane">
             <div id="users-tab" class="users" style="float:left;display:inline">
-              <div id="user-find">
-                <input id="gamer-filter" type="text" placeholder="Enter username" onkeyup="filterGamers()"/><br>
-              </div>
+              <div class="block">
+                <div id="user-find" class="block">
+                  <input id="gamer-filter" type="text" placeholder="Enter username" onkeyup="filterGamers()"/><br>
+                </div>
+                <div id="avatar-upload" class="avatar block" onclick="javascript:UploadAvatar(this);">
+                  <img id="avatar-img" border="0" src="images/avatar.png" alt="avatar" height="35"/>
+                </div>
+              </div>  
               <div id="user-list" class="gamers-panel">
               </div>  
             </div>

@@ -388,9 +388,10 @@ function OnSelectedTab(tabView){
         $("#help-tab").hide();
         $("#game-tab").hide();
         $("#online").hide();
+        $("#sound-img").hide();
         HideTheGameboards();
     }
-    if(tabView==="active_game")
+    if(tabView==="active-game")
     {
         $("#data").hide();
         $('.header-btn').hide();
@@ -1271,6 +1272,7 @@ function buildFleetJSON(HASBRACKETS=true){
     $.each(nodes[0], function (i, obj)
     {
         var sunk_img = obj.getAttribute("href").replace(".png", "_h.png");
+        //var sunk_img = imgroot+"/fire_512.gif";
         if( obj.getAttribute("isship") === "1")
             ship = ship + "{ \"cell\" : \"" +  obj.getAttribute("idx") + "\", \"isship\" : \"" + obj.getAttribute("isship") + "\", \"img\" : \"" + obj.getAttribute("href") + "\",\"sunk_img\" : \"" + sunk_img + "\",\"ship_part\" : \"" + obj.getAttribute("ship_part") + "\",\"hit\" : \"N\",\"sunk\" : \"N\"},";
 
@@ -1393,7 +1395,7 @@ function selectRemoteUser(user="")
 
 function getStatus(){
     isRequested = false;
-    
+
     //console.log('getStatus');
     var json = '{';
     if(isIssuer !== gUser)
@@ -1562,7 +1564,7 @@ function getStatus(){
                 if(obj.user_2 === gUser && obj.action==="REQ")
                 {
                     q++;
-                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish_request_btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
+                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block publish-request-btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span></div>';
                     $("#request-tab").append(tddata);
                     
                 }
@@ -1574,9 +1576,9 @@ function getStatus(){
                     var tddata = "";
 
                     if(gUser === obj.user_1)
-                        tddata = '<div id="btx-' + obj.user_2 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish_span_btn" >' + obj.user_2 + '</span></div>';
+                        tddata = '<div id="btx-' + obj.user_2 + '" class="block publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span></div>';
                     else
-                        tddata = '<div id="btx-' + obj.user_1 + '" class="block publish_playing_btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish_span_btn" >' + obj.user_1 + '</span></div>';
+                        tddata = '<div id="btx-' + obj.user_1 + '" class="block publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span></div>';
 
                     $("#game-tab").append(tddata);
                 }
@@ -2111,7 +2113,7 @@ function SuccessCallback(data){
     {
         $.each(js.data.gamers, function (i, obj)
         {
-            console.log(obj);
+            //console.log(obj);
             //q++;
             var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div></div>';
             $("#user-list").append(tddata);
@@ -2266,4 +2268,90 @@ function filterGamers()
             $(iddx).removeClass("hide-user-name");
         }
     });
+}
+
+function UploadAvatar(evt){
+    //$('#file-input').trigger('click'); 
+    var input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = e => { 
+
+       // getting a hold of the file reference
+       var file = e.target.files[0]; 
+       
+       
+
+       // setting up the reader
+       var reader = new FileReader();
+       reader.readAsArrayBuffer(file);
+
+
+        //console.log(file.name);
+       // here we tell the reader what to do when it's done reading...
+       reader.onload = readerEvent => {
+            var result, n, aByte, max_size;
+            var page_array = [];
+            var content = reader.result; // this is the content!
+            console.log("Blob length:", content.byteLength);
+            var ix = new Uint8Array(content);
+            max_size = ix.length;
+            //max_size = 1000;
+            
+
+            var range = 1000;
+            var q = max_size % range;
+            var iX = max_size-q;
+            var pages = iX /range;
+            console.log(q, iX, pages);
+
+            var s, e;
+            for(var page=0; page<pages; page++)
+            {
+                var qx = new Uint8Array(range);
+                s = (page * range);
+                e = s + range - 1;
+
+                var x = 0;
+                for(var i=s; i<=e; i++)
+                {
+                    qx[x] = ix[i];
+                    x++;
+                }
+
+                SendData(page, qx, s, e, gUser, range, max_size, file.type);
+            }
+
+            if((e + q) > 0)
+            {
+                var qx = new Uint8Array(q);
+
+                s = (e + 1);
+                e = s + q;
+                
+                var x = 0;
+                for(var i=s; i<=e; i++)
+                {
+                    qx[x] = ix[i];
+                    x++;
+                }
+
+                SendData((pages + 1), qx, s, e, gUser, q, -1, file.type);
+            }
+       }
+    }    
+    input.click();    
+}
+
+function SendData(page, arr, s, e, filename, size, max_size, type){
+    console.log("SendData:", page, s, e, filename, size, max_size, type);   
+    if(hubConnection.connectionState>0)
+    {
+        hubConnection.invoke("Avatar", page, arr, s, e , filename, size, max_size, type)
+        .then(datax => {
+            //var data = JSON.parse(datax);
+            // you can access your data here
+            //console.log("HUB Response:", data)
+        })
+    }    
 }

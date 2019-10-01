@@ -8,6 +8,10 @@
     <DefineConstants>TRACE;RELEASE_BUILD</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>C:\inetpub\wwwroot\BattleHub\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="wwwroot\**" />
     <Content Remove="wwwroot\**" />
@@ -16,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.SignalR" Version="2.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink.12.0" Version="12.0.0" />
     <PackageReference Include="mongocsharpdriver" Version="1.9.0" />
@@ -23,6 +28,12 @@
     <PackageReference Include="NServiceBus" Version="7.1.10" />
     <PackageReference Include="System.Drawing.Common" Version="4.6.0-preview8.19405.3" />
     <PackageReference Include="System.IO.Packaging" Version="4.6.0-preview8.19405.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Web.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
