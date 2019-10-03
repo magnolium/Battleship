@@ -5,7 +5,9 @@
   },
   "compilationOptions": {
     "defines": [
+      "DEBUG",
       "TRACE",
+      "DEBUG_BUILD",
       "DEBUG",
       "NETCOREAPP",
       "NETCOREAPP2_1"

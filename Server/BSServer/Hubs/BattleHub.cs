@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -1191,76 +1192,73 @@ namespace SignalR.Server.Hubs
             Clients.All.SendAsync("UpdateGameBoard", user, remote);
         }
 
-        static byte[] total_bytes;
-        public void Avatar(int page, Newtonsoft.Json.Linq.JObject data, int start, int end, string name, int size, int max_size, string type)
+        static Hashtable hashBytes = new Hashtable();
+        public string Avatar(int page, Newtonsoft.Json.Linq.JObject data, int start, int end, string name, int size, int max_size, string type)
         {
-            if(page == 0)
+            if (max_size > 1000000 )    //10K Images max
             {
-                total_bytes = new byte[max_size];
+                return "TOOBIG";
+            }
+            if (max_size < 1000 )    //10K Images max
+            {
+                return "TOOSMALL";
+            }
+
+            if (page == 0)
+            {
+                byte[] totalBytes = new byte[max_size];
+                hashBytes[name] = totalBytes;
             }
 
             for (int i=0; i<size; i++)
             {
                 byte b = (byte)data.GetValue(i.ToString());
-                total_bytes.SetValue(b, (start + i));
+                ((byte[])hashBytes[name]).SetValue(b, (start + i));
             }
 
-            if (max_size == -1)
+            if (max_size > size)
             {
+                string ByteStr = System.Convert.ToBase64String(((byte[])hashBytes[name]));
+
                 Debug.WriteLine("Finished");
-                MemoryStream ms = new MemoryStream(total_bytes);
-                using (Image image = Image.FromStream(ms))
-                {
-                    if (type == "image/jpeg") image.Save($"avatars/{name}.jpg", ImageFormat.Jpeg);
-                    if (type == "image/png") image.Save($"avatars/{name}.png", ImageFormat.Png);
-                    if (type == "image/bmp") image.Save($"avatars/{name}.bmp", ImageFormat.Bmp);
-                    if (type == "image/gif") image.Save($"avatars/{name}.gif", ImageFormat.Gif);
-                }
+                MemoryStream ms = new MemoryStream(((byte[])hashBytes[name]));
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("{{ \"game_id\" : \"{0}\" }}", name);
+
+                string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+                string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
+                string s_collection = "gamers";
+
+                GetDB db = new GetDB(s_serverip, s_Database);
+                db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
+
+                MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>("gamers");
+                BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+                QueryDocument queryDoc = new QueryDocument(queryX);
+
+                StringBuilder sbQueryX = new StringBuilder();
+                sbQueryX.AppendFormat("{{ $set: {{ , image : \"{0}\", image_type : \"{1}\" }} }}", ByteStr, type);
+
+                MongoUpdateOptions muo = new MongoUpdateOptions();
+                muo.Flags = UpdateFlags.Multi;
+                BsonDocument updateQuery = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sbQueryX.ToString());
+                UpdateDocument updateDoc = new UpdateDocument(updateQuery);
+                gamersDoc.Update(queryDoc, updateDoc, muo);
+                Clients.All.SendAsync("UpdateUserList", name);
+
+
+                //using (Image image = Image.FromStream(ms))
+                //{
+                //    image.Save($"avatars/{name}.jpg", ImageFormat.Jpeg);
+                //    //if (type == "image/png") image.Save($"avatars/{name}.png", ImageFormat.Png);
+                //    //if (type == "image/bmp") image.Save($"avatars/{name}.bmp", ImageFormat.Bmp);
+                //    //if (type == "image/gif") image.Save($"avatars/{name}.gif", ImageFormat.Gif);
+                //    hashBytes.Remove(name);
+                //    Clients.All.SendAsync("UpdateUserList", name);
+                //}
             }
-        }
-
-        public static byte[] ReadFully(Stream stream, int initialLength)
-        {
-            // If we've been passed an unhelpful initial length, just
-            // use 32K.
-            if (initialLength < 1)
-            {
-                initialLength = 32768;
-            }
-
-            byte[] buffer = new byte[initialLength];
-            int read = 0;
-
-            int chunk;
-            while ((chunk = stream.Read(buffer, read, buffer.Length - read)) > 0)
-            {
-                read += chunk;
-
-                // If we've reached the end of our buffer, check to see if there's
-                // any more information
-                if (read == buffer.Length)
-                {
-                    int nextByte = stream.ReadByte();
-
-                    // End of stream? If so, we're done
-                    if (nextByte == -1)
-                    {
-                        return buffer;
-                    }
-
-                    // Nope. Resize the buffer, put in the byte we've just
-                    // read, and continue
-                    byte[] newBuffer = new byte[buffer.Length * 2];
-                    Array.Copy(buffer, newBuffer, buffer.Length);
-                    newBuffer[read] = (byte)nextByte;
-                    buffer = newBuffer;
-                    read++;
-                }
-            }
-            // Buffer is now too big. Shrink it.
-            byte[] ret = new byte[read];
-            Array.Copy(buffer, ret, read);
-            return ret;
+            return "UPDATED";
         }
 
         public byte [] RetrieveImage(string user)

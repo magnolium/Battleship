@@ -29,9 +29,11 @@ namespace SignalR.Server
                 .AddEnvironmentVariables();
 
             _configurationRoot = builderX.Build();
-            var corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
+
 #if RELEASE_BUILD
-            corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomainLive");
+    var corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomainLive");
+#else
+    var corsDomain = _configurationRoot.GetValue<string>("AppSettings:CorsDomain");
 #endif
 
             services.Configure<CookiePolicyOptions>(options =>

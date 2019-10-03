@@ -10,6 +10,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>C:\inetpub\wwwroot\BattleHub\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;DEBUG_BUILD</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

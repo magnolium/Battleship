@@ -26,6 +26,12 @@ $(document).ready(function () {
         getStatus();        
     });
 
+    hubConnection.on("UpdateUserList", data => {
+        last_list = "";
+        LoadUserList();
+    });
+
+
     hubConnection.on("NewGame", data => {
 
         var datax = JSON.parse(data);
@@ -225,6 +231,7 @@ var OFFSET_HIT = 0;
 var last_data = null;
 var enable_sound = true;
 var last_list;
+var last_list_2;
 var aud1 = null;
 var aud2 = null;
 var aud3 = null;
@@ -984,20 +991,23 @@ function validateLogin(type){
         validatedPswd =  true;
         if(this.value.length < 8)
             validatedPswd = false;
-        if(!/\d/.test(this.value))
-            validatedPswd = false;
-        if(!/[a-z]/.test(this.value))
-            validatedPswd = false;
-        if(!/[A-Z]/.test(this.value))
-            validatedPswd = false;
-        if(/[^0-9a-zA-Z]/.test(this.value))
+        // if(!/\d/.test(this.value))
+        //     validatedPswd = false;
+        // if(!/[a-z]/.test(this.value))
+        //     validatedPswd = false;
+        // if(!/[A-Z]/.test(this.value))
+        //     validatedPswd = false;
+        if(/[0-9a-zA-Z]/.test(this.value))
             validatedPswd = false;
     });     
 
     if(!validatedUser || !validatedPswd)
     {
-        if(!validatedUser)$("#messageid").html("Invalid Username");
-        if(!validatedPswd)$("#messageid").html("Invalid Password");
+        if(!validatedUser)
+            $("#messageid").html("Invalid Username");
+        else
+            if(!validatedPswd)
+                $("#messageid").html("Invalid Password");
     }
     else
     {
@@ -1546,80 +1556,83 @@ function getStatus(){
                 return;
             }
 
-            $.each(data.requests, function (i, obj)
+            if( last_list_2 != JSON.stringify( data.requests ))
             {
-                //console.log(obj);
-                
-                if(obj.user_2 === gUser && obj.action==="REQ")
+                $.each(data.requests, function (i, obj)
                 {
-                    q++;
-                    var tddata = '<div id="btn-' + obj.user_2 + '" class="block select-group publish-play-btn block"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="req_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="ZZZ" height="100"/></div></div>';
-                    $("#request-tab").append(tddata);
+                    if(obj.user_2 === gUser && obj.action==="REQ")
+                    {
+                        q++;
+                        var tddata = '<div id="btn-' + obj.user_2 + '" class="block select-group publish-play-btn block"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="req_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="ZZZ" height="100"/></div></div>';
+                        $("#request-tab").append(tddata);
+                        
+                    }
                     
-                }
-                
-                //console.log(obj.user_1, "===", gUser,"|", obj.user_2, "===", gUser);
-                if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
-                {
-                    k++;
-                    var tddata = "";
-                    var userid;
-                    if(gUser === obj.user_1)
+                    //console.log(obj.user_1, "===", gUser,"|", obj.user_2, "===", gUser);
+                    if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
                     {
-                        userid = obj.user_2;
-                        tddata = '<div id="btx-' + obj.user_2 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="XXX" height="100"/></div></div>';
+                        k++;
+                        var tddata = "";
+                        var userid;
+                        if(gUser === obj.user_1)
+                        {
+                            userid = obj.user_2;
+                            tddata = '<div id="btx-' + obj.user_2 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="XXX" height="100"/></div></div>';
+                        }
+                        else
+                        {
+                            userid = obj.user_1;
+                            tddata = '<div id="btx-' + obj.user_1 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_1+'" class="profile-pic" border="0" src="" alt="YYY" height="100"/></div></div>';
+                        }
+
+                        $("#game-tab").append(tddata);
+
+                        //GetImage(userid, "#img_"+userid);
                     }
-                    else
+                    
+                    //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
+                    //console.log("ACTION: ", obj.issuer);
+
+                    isIssuer = obj.issuer;
+
+                    myStatus = obj.action;
+
+                    if(obj.action==="REQ")
                     {
-                        userid = obj.user_1;
-                        tddata = '<div id="btx-' + obj.user_1 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_1+'" class="profile-pic" border="0" src="" alt="YYY" height="100"/></div></div>';
+                        if(isIssuer === gUser)
+                            REQUEST_MODE = true;
+                        else
+                            REQUEST_MODE = false;
                     }
 
-                    $("#game-tab").append(tddata);
-
-                    GetImage(userid, "#img_"+userid);
-                }
-                
-                //console.log(gUser+" status is "+obj.action, PLAY_MODE, obj.issuer);
-                //console.log("ACTION: ", obj.issuer);
-
-                isIssuer = obj.issuer;
-
-                myStatus = obj.action;
-
-                if(obj.action==="REQ")
-                {
-                    if(isIssuer === gUser)
-                        REQUEST_MODE = true;
-                    else
+                    //console.log("GS: ", obj.next_player, gUser);
+                    if(obj.next_player!==gUser)
+                    {
                         REQUEST_MODE = false;
-                }
-
-                //console.log("GS: ", obj.next_player, gUser);
-                if(obj.next_player!==gUser)
-                {
-                    REQUEST_MODE = false;
-                    PLAY_MODE = true;
-                    YOURTURN = false;
-                    $("#userturn")[0].innerHTML = "THEIR TURN";
-                    $("#userturn").addClass("disable");
-                }
-                
-                if(obj.next_player===gUser && gRemoteUser !== "")
-                {
-                    REQUEST_MODE = false;
-                    PLAY_MODE = true;
-                    YOURTURN = true;
-                    $("#userturn").removeClass("disable");
-                    $("#userturn")[0].innerHTML = "YOUR TURN";
+                        PLAY_MODE = true;
+                        YOURTURN = false;
+                        $("#userturn")[0].innerHTML = "THEIR TURN";
+                        $("#userturn").addClass("disable");
+                    }
                     
-                    if(PING)
+                    if(obj.next_player===gUser && gRemoteUser !== "")
                     {
-                        ping();
-                        PING = 0;
-                    }                    
-                }
-            });
+                        REQUEST_MODE = false;
+                        PLAY_MODE = true;
+                        YOURTURN = true;
+                        $("#userturn").removeClass("disable");
+                        $("#userturn")[0].innerHTML = "YOUR TURN";
+                        
+                        if(PING)
+                        {
+                            ping();
+                            PING = 0;
+                        }                    
+                    }
+                });
+            }
+            
+            last_list_2 = JSON.stringify( data.requests );
 
             if(q>0)
                 $("#requestX")[0].innerHTML = "Requests ("+q+")";
@@ -2112,9 +2125,10 @@ function SuccessCallback(data){
 
         $.each(js.data.gamers, function (i, obj)
         {
-            var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div><div class="profile-pic-usr"><img id="usr_'+obj.game_id+'"  border="0" src="" alt="QQQ" height="100"/></div></div>';
+            //console.log("GAMERS:", obj);
+            var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div><div class="profile-pic-usr"><img id="usr_'+obj.game_id+'"  border="0" src="" alt="" height="100"/></div></div>';
             $("#user-list").append(tddata);
-            GetImage(obj.game_id, "#usr_"+obj.game_id);
+            GetImage(obj.game_id, "#usr_"+obj.game_id, obj.image, obj.image_type);
         });
     }
     last_list = JSON.stringify(js.data.gamers);
@@ -2293,8 +2307,17 @@ function UploadAvatar(evt){
             console.log("Blob length:", content.byteLength);
             var ix = new Uint8Array(content);
             max_size = ix.length;
-            //max_size = 1000;
             
+            if (max_size > 1000000 )    //1M Images max
+            {
+                alert("Image to big. Must be >= 1K and <= 1M");
+                return;
+            }
+            if (max_size < 1000 )    //10K Images max
+            {
+                alert("Image to small. Must be >= 1K and <= 1000K");
+                return;
+            }            
 
             var range = 1000;
             var q = max_size % range;
@@ -2333,7 +2356,7 @@ function UploadAvatar(evt){
                     x++;
                 }
 
-                SendData((pages + 1), qx, s, e, gUser, q, -1, file.type);
+                SendData((pages + 1), qx, s, e, gUser, q, max_size, file.type);
             }
        }
     }    
@@ -2341,20 +2364,30 @@ function UploadAvatar(evt){
 }
 
 function SendData(page, arr, s, e, filename, size, max_size, type){
-    console.log("SendData:", page, s, e, filename, size, max_size, type);   
     if(hubConnection.connectionState>0)
     {
         hubConnection.invoke("Avatar", page, arr, s, e , filename, size, max_size, type)
         .then(datax => {
-            //var data = JSON.parse(datax);
-            // you can access your data here
-            //console.log("HUB Response:", data)
+            //var data = JSON.stringify(datax);
+            //console.log("Avatar:", data);
         })
     }    
 }
 
-function GetImage(file, id)
+function GetImage(file, id, datax, type)
 {
+
+    if(datax !== undefined)
+    {
+        console.log("GetImage", type);
+        var img = "data:image/"+type+";base64," + datax;
+        if($(id)[0] !== undefined)
+        {
+            $(id)[0].src = img;
+        }        
+    }
+    
+    /*
     if(hubConnection.connectionState>0)
     {
         hubConnection.invoke("RetrieveImage", file)
@@ -2366,4 +2399,5 @@ function GetImage(file, id)
             }
         })
     } 
+    */
 }
