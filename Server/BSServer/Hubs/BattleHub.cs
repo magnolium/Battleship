@@ -377,7 +377,7 @@ namespace SignalR.Server.Hubs
             StringBuilder json = new StringBuilder();
 
             sb.AppendFormat("{{}}");
-            json.AppendFormat("{{ \"action\" : \"{0}\", \"user_1\" : \"{1}\", \"user_2\" : \"{2}\",  }}", command, user_1, user_2);
+            json.AppendFormat("{{ \"action\" : \"{0}\", \"user_1\" : \"{1}\", \"user_2\" : \"{2}\" }}", command, user_1, user_2);
 
 
             db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);

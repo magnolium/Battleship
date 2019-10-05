@@ -1127,7 +1127,7 @@ function postApiAction(cmd, info=""){
     {
         hubConnection.invoke("PostApiAction", json)
         .then(datax => {
-
+            //console.log("DATAX:", datax);
             var dataz = JSON.parse(datax);
             //console.log("postApiActionX-XXXX:", dataz)
 
@@ -1187,11 +1187,13 @@ function postApiAction(cmd, info=""){
                 isIssuer = "";
                 localStorage.setItem("remote_user", "");
                 gRemoteUser = "";    
-                console.log("*** END GAME ***", retValue);
+                console.log("*** END GAME ***");
                 UpdateField("ship_down_for", "@@@@", "string");
                 UpdateField("winner", "@@@@", "string"); 
                  console.log("-----------------------------");
                 clearGameboard();     
+                if(isIssuer!==gUser)
+                    $('#btn-end-game').addClass('disable')
                 getStatus();        
                 pauseClock = false;
             }
@@ -1250,7 +1252,7 @@ function postApiAction(cmd, info=""){
                 }
             }
             $("#wait").hide(); 
-        }).catch(err => console.error(err.toString(), datax));
+        }).catch(err => console.error(err.toString()));
     }
 }
 
@@ -2380,7 +2382,7 @@ function SendData(page, arr, s, e, filename, size, max_size, type, range){
 
 function GetImageList(user, id)
 {
-    console.log("GetImageList", images_data, user);
+    //console.log("GetImageList", images_data, user);
     var item = images_data.find(function(element) {
         return element.user === user;
     }); 
