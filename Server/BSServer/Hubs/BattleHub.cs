@@ -429,7 +429,9 @@ namespace SignalR.Server.Hubs
             if (command == "UPDATEGAMEBOARD")
             {
                 sb.Clear();
-                sb.AppendFormat("{{ $or: [{{\"game_id\" : \"{0}|{1}\", \"action\" : \"PLAY\" }}, {{\"game_id\" : \"{1}|{0}\", \"action\" : \"PLAY\" }} ] }}", user_1, user_2);
+                //sb.AppendFormat("{{ $or: [{{\"game_id\" : \"{0}|{1}\", \"action\" : \"PLAY\" }}, {{\"game_id\" : \"{1}|{0}\", \"action\" : \"PLAY\" }} ] }}", user_1, user_2);
+
+                sb.AppendFormat("{ $or : [{{ $and : [ {{user_1:\"{0}\"}}, {{user_2: \"{1}\"}} ]}}, {{$and : [ {{user_1:\"{0}\"}}, {{user_2: \"{1}\"}} ]}}] }}", user_1, user_2);
                 try
                 {
                     MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
@@ -495,6 +497,7 @@ namespace SignalR.Server.Hubs
                         else
                         {   //Handles the local who made request selecting a remote
                             sb.Clear();
+
                             sb.AppendFormat("{{ $or: [{{ \"game_id\" : \"{0}|{1}\", \"action\" : \"REQ\" }}, {{ \"game_id\" : \"{1}|{0}\", \"action\" : \"REQ\" }}] }}", user_1, user_2);
                             gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
                             queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
@@ -853,6 +856,9 @@ namespace SignalR.Server.Hubs
             
             string userid = "";
 
+            string game_id = bsd.GetElement("game_id").Value.ToString();
+            string[] gamersid = game_id.Split('|');
+
             if (bsd.Contains("user"))
                 userid = bsd.GetElement("user").Value.ToString();
             else if (bsd.Contains("user1"))
@@ -867,7 +873,12 @@ namespace SignalR.Server.Hubs
             string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gamerboard";
 
-            sb.AppendFormat("{{ $or : [ {{\"user_1\":\"{0}\"}}, {{\"user_2\":\"{0}\"}} ] }}", userid);
+            //if(gamersid[0] == "" || gamersid[1] == "")
+                sb.AppendFormat("{{ $or : [ {{\"user_1\":\"{0}\"}}, {{\"user_2\":\"{0}\"}} ] }}", userid);
+            //else
+            //{
+            //    sb.AppendFormat("{{ $or : [{{ $and : [ {{ user_1:\"{0}\" }}, {{user_2: \"{1}\"}} ] }}, {{ $and : [ {{ user_2:\"{0}\" }}, {{ user_1: \"{1}\"}} ] }}]  }}", gamersid[0], gamersid[1]);
+            //}
 
             GetDB db = new GetDB(s_serverip, s_Database);
             db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
