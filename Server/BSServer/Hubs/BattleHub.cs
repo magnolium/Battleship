@@ -77,7 +77,8 @@ namespace SignalR.Server.Hubs
                 string s_collection = "gamers";
 
                 sb.Clear();
-                sb.AppendFormat("{{ \"game_id\" : {{$ne : \"{0}\"}} }}", userid);
+                //sb.AppendFormat("{{ \"game_id\" : {{$ne : \"{0}\"}} }}", userid);
+                sb.AppendFormat("{{}}");
 
                 GetDB db = new GetDB(s_serverip, s_Database);
                 db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
@@ -575,7 +576,7 @@ namespace SignalR.Server.Hubs
                         var game_id = game[0].GetElement("game_id").Value.ToString();
                         sb.AppendFormat("{{}}");
                         json.Clear();
-                        json.AppendFormat("{{ \"game_id\" : \"{0}\", \"action\" : \"{1}\", \"user_1\" : \"{2}\", \"user_2\" : \"{3}\",  }}", game_id, command, user_1, user_2);
+                        json.AppendFormat("{{ \"game_id\" : \"{0}\", \"action\" : \"{1}\", \"user_1\" : \"{2}\", \"user_2\" : \"{3}\" }}", game_id, command, user_1, user_2);
 
                         gamersDoc.Remove(queryDoc);
                     }
@@ -1193,7 +1194,7 @@ namespace SignalR.Server.Hubs
         }
 
         static Hashtable hashBytes = new Hashtable();
-        public string Avatar(int page, Newtonsoft.Json.Linq.JObject data, int start, int end, string name, int size, int max_size, string type)
+        public string Avatar(int page, Newtonsoft.Json.Linq.JObject data, int start, int end, string name, int size, int max_size, string type, int range)
         {
             if (max_size > 1000000 )    //10K Images max
             {
@@ -1216,11 +1217,10 @@ namespace SignalR.Server.Hubs
                 ((byte[])hashBytes[name]).SetValue(b, (start + i));
             }
 
-            if (max_size > size)
+            if (size < range)
             {
-                string ByteStr = System.Convert.ToBase64String(((byte[])hashBytes[name]));
+                //string ByteStr = System.Convert.ToBase64String(((byte[])hashBytes[name]));
 
-                Debug.WriteLine("Finished");
                 MemoryStream ms = new MemoryStream(((byte[])hashBytes[name]));
 
                 StringBuilder sb = new StringBuilder();
@@ -1238,7 +1238,7 @@ namespace SignalR.Server.Hubs
                 QueryDocument queryDoc = new QueryDocument(queryX);
 
                 StringBuilder sbQueryX = new StringBuilder();
-                sbQueryX.AppendFormat("{{ $set: {{ , image : \"{0}\", image_type : \"{1}\" }} }}", ByteStr, type);
+                sbQueryX.AppendFormat("{{ $set: {{ image_type : \"{0}\" }} }}", type);
 
                 MongoUpdateOptions muo = new MongoUpdateOptions();
                 muo.Flags = UpdateFlags.Multi;
@@ -1247,18 +1247,22 @@ namespace SignalR.Server.Hubs
                 gamersDoc.Update(queryDoc, updateDoc, muo);
                 Clients.All.SendAsync("UpdateUserList", name);
 
-
-                //using (Image image = Image.FromStream(ms))
-                //{
-                //    image.Save($"avatars/{name}.jpg", ImageFormat.Jpeg);
-                //    //if (type == "image/png") image.Save($"avatars/{name}.png", ImageFormat.Png);
-                //    //if (type == "image/bmp") image.Save($"avatars/{name}.bmp", ImageFormat.Bmp);
-                //    //if (type == "image/gif") image.Save($"avatars/{name}.gif", ImageFormat.Gif);
-                //    hashBytes.Remove(name);
-                //    Clients.All.SendAsync("UpdateUserList", name);
-                //}
+                using (Image image = Image.FromStream(ms))
+                {
+                    if (type == "image/jpeg")
+                        image.Save($"avatars/{name}.jpg", ImageFormat.Jpeg);
+                    if (type == "image/png")
+                        image.Save($"avatars/{name}.png", ImageFormat.Png);
+                    if (type == "image/bmp")
+                        image.Save($"avatars/{name}.bmp", ImageFormat.Bmp);
+                    if (type == "image/gif")
+                        image.Save($"avatars/{name}.gif", ImageFormat.Gif);
+                    hashBytes.Remove(name);
+                    Clients.All.SendAsync("UpdateUserList", name);
+                    return "UPDATED";
+                }
             }
-            return "UPDATED";
+            return "";
         }
 
         public byte [] RetrieveImage(string user)

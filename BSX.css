@@ -1413,3 +1413,10 @@ div.info-tip-1{
     text-align:-moz-center;
     text-align: -webkit-center;    
 }
+
+.profile-pic-req{
+    position: relative;
+    text-align: -moz-center;
+    text-align: -webkit-center;    
+    top: -120px;
+}
