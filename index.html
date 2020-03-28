@@ -16,16 +16,18 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script src="bsx.js"></script>
-    <link href="fonts/dinot/css/dinot.css" rel="stylesheet" type="text/css" />
+    
     <link rel="stylesheet" href="bsx.css">
 </head>
 
 <body>
-      <div data-role="page" id="homepage" data-theme="d">
+      <div id="homepage">
         
-        <div data-role="header" data-tap-toggle="false" data-position="fixed" id="headmargin" >
-            <img border="0" src="images/logo.png" alt="MAGNOLIUM" height="50" style="float:right;display:inline"/>
-            <img id="profile-image" border="0" src="" alt="" height="60" style="float:right;display:inline"/>
+        <div id="headmargin" >
+            <div id="avatar-2">
+              <img border="0" src="images/logo.png" alt="MAGNOLIUM" height="50" style="float:right;display:inline"/>
+              <img id="profile-image" border="0" src="" alt="" height="50" style="float:right;display:inline"/>
+            </div>         
             <div id="wait">
                 <img src="images/LoadingWheel.gif" height="50px" width="50px" class="cursor"/>
             </div>
@@ -35,199 +37,159 @@
             <div id="action-wait" class="playing" style="visibility: hidden;">
                 <img src="images/LoadingWheel.gif" height="20px" width="20px" class="cursor"/>
             </div>            
-            <h1><span id="page-title" class="" style="font-weight: normal;font-size: 18px;">BATTLESHIP DOWN</span></h1>
+            <div id="battleship-text"><span id="page-title">BATTLESHIP DOWN</span></div>
         </div>
+
+        <div id="main-canvas">
+            <div id="id-local" class="views"        onclick="viewMode('local');"><span id="localX">FLEET</span></div>
+            <div id="id-remote" class="views"       onclick="viewMode('remote');"><span id="remoteX">HIT LIST</span></div>
+            <div id="id-request" class="views"      onclick="viewMode('request');"><span id="requestX">Request</span></div>
+            <div id="id-active" class="views"  onclick="viewMode('active');"><span id="activeX">Active Games</span></div>
+            <div id="id-users" class="views"        onclick="viewMode('users');"><span id="usersX">Users</span></div>
+            <div id="id-help" class="views"         onclick="viewMode('help');"><span id="helpX">Help</span></div>
+        </div>
+
+        <div id="local" class="">
+        </div>
+
+        <div id="btn-group">
+
+            <div id="btn-status" class="block horizontal status-btn" onclick="gotoHitlist();"><span id="userturn" class="push-span-btn">Not Playing</span></div>
+            <div id="btn-end-game" class="block horizontal push-btn header-btn" onclick="btnEndGame();"><span class="push-span-btn">End Game</span></div>
+            <div id="btn-play-again" class="block horizontal push-btn header-btn" onclick="btnPlayAgain();"><span class="push-span-btn">Play Again</span></div>
+            <div id="btn-percentage" class="block horizontal status-btn header-btn"><span id="percid" class="push-span-btn">0</span></div>
+
+            <div id="sound" class="block horizontal" onclick="toggleSound();"><img id="sound-img" border="0" src="images/sound_on.png" alt="sound" height="25"/></div>
+            <div id="online" class="block horizontal" onclick="Test();"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
             
-        <div id="div-header">
-            <span id="header"></span>
+        </div>
+
+        <div id="data" class="sea"></div>  
+
+
+        <script>
+            var margin = {top: 30, right: 20, bottom: 30, left: 20},
+              width = 600 - margin.left - margin.right,
+              height = 500 - margin.top - margin.bottom,
+              barHeight = 20,
+              barWidth = width * .8;
+
+            var i = 0,
+              duration = 400,
+              root;
+
+            var tree = d3.layout.tree()
+              .nodeSize([0, 20]);
+
+            var diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; });
+
+            var svg = d3.select("#data").append("svg")
+              .attr("width", getViewport()[0])
+              .attr("height", 540)
+              .append("g")
+              .attr("transform", "translate(5,5)");
+
+            var root = {},
+              nodes = tree(root);
+
+            root.parent = root;
+            root.px = root.x;
+            root.py = root.y;
+
+            // Define the div for the tooltip
+            var tooltip = d3.select("body").append("tooltip") 
+              .attr("class", "tooltip")       
+              .style("opacity", 0);              
+
+            var node = svg.selectAll(".node"),
+              link = svg.selectAll(".link");
+              console.log("Instantiated 3D canvas");
+        </script>
+
+        <div id="remote" class="pane">
+        </div>
+
+        <div id="request" class="pane">
+          <div id="request-tab" class="users" style="float:left;display:inline">
+            
+          </div>  
+        </div>
+
+        <div id="active" class="pane">
+          <div id="game-tab" class="users" style="float:left;display:inline">
+            
+          </div>  
         </div>
 
 
-        <div id="main-canvas" class="tab-content">
-            <ul class="nav nav-tabs">
-                <li id="id-local"><a data-toggle="tab" id="localX" href="#local">FLEET</a></li>
-                <li id="id-remote"><a data-toggle="tab" id="remoteX" href="#remote">HIT LIST</a></li>
-                <li id="id-request"><a data-toggle="tab" id="requestX" href="#request">Request</a></li>
-                <li id="id-active-game"><a data-toggle="tab" id="activeX" href="#active-game">Active Games</a></li>
-                <li id="id-users"><a data-toggle="tab" id="usersX" href="#users">Users</a></li>
-                <li id="id-help"><a data-toggle="tab" id="helpX" href="#help">Help</a></li>
-            </ul>
-          <div id="local" class="tab-pane fade in active">
-          </div>
-
-          <div id="data" class="sea"></div>  
-
-
-
-          <div id="btn-group" style="float:left;display:inline">
-              <!--
-              <div id="btn-test" class="block horizontal publish-btn header-btn" onclick="javascript:btnTest();"><span class="publish-span-btn">TEST</span></div>
-              -->
-              <div id="btn-status" class="block horizontal status-btn header-btn" onclick="javascript:gotoHitlist();"><span id="userturn" class="publish-span-btn">Not Playing</span></div>
-              <div id="btn-end-game" class="block horizontal publish-btn header-btn" onclick="javascript:btnEndGame();"><span class="publish-span-btn">End Game</span></div>
-              <!--
-              <div id="gamers-dropdown" class="block horizontal control header-btn">
-                <select class="gamers-menu" id="gamer-item" name="menu" onchange="javascript:selectRemoteUser();">
-                    <option value="" selected id="no-select">(Select Remote User)</option>
-                </select>
-              </div>     
-              -->         
-              <div id="btn-play-again" class="block horizontal publish-btn header-btn" onclick="javascript:btnPlayAgain();"><span class="publish-span-btn">Play Again</span></div>
-              <div id="btn-percentage" class="block horizontal status-btn header-btn"><span id="percid" class="publish-span-btn">0</span></div>
-  
-              <div id="sound" class="block horizontal" onclick="javascript:toggleSound();"><img id="sound-img" border="0" src="images/sound_on.png" alt="sound" height="25"/></div>
-              <div id="online" class="block horizontal" onclick="javascript:Test();"><img id="online-img" border="0" src="images/online.png" alt="online" height="35"/></div>
-              
-          </div>
-
-          <script>
-              var margin = {top: 30, right: 20, bottom: 30, left: 20},
-                  width = 600 - margin.left - margin.right,
-                  height = 500 - margin.top - margin.bottom,
-                  barHeight = 20,
-                  barWidth = width * .8;
-
-              var i = 0,
-                  duration = 400,
-                  root;
-
-              var tree = d3.layout.tree()
-                  .nodeSize([0, 20]);
-
-              var diagonal = d3.svg.diagonal().projection(function(d) { return [d.y, d.x]; });
-
-              var svg = d3.select("#data").append("svg")
-                  .attr("width", getViewport()[0])
-                  .attr("height", 540)
-                  .append("g")
-                  .attr("transform", "translate(5,5)");
-
-              var root = {},
-                  nodes = tree(root);
-
-              root.parent = root;
-              root.px = root.x;
-              root.py = root.y;
-
-              // Define the div for the tooltip
-              var tooltip = d3.select("body").append("tooltip") 
-                  .attr("class", "tooltip")       
-                  .style("opacity", 0);              
-
-              var node = svg.selectAll(".node"),
-                  link = svg.selectAll(".link");
-
-              function getViewport() 
-              {
-                   var viewPortWidth;
-                   var viewPortHeight;
-
-                   // the more standards compliant browsers (mozilla/netscape/opera/IE7) use window.innerWidth and window.innerHeight
-                   if (typeof window.innerWidth != 'undefined') {
-                     viewPortWidth = window.innerWidth,
-                     viewPortHeight = window.innerHeight
-                   }
-
-                  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-                   else if (typeof document.documentElement != 'undefined'
-                   && typeof document.documentElement.clientWidth !=
-                   'undefined' && document.documentElement.clientWidth != 0) {
-                      viewPortWidth = document.documentElement.clientWidth,
-                      viewPortHeight = document.documentElement.clientHeight
-                   }
-
-                   // older versions of IE
-                   else {
-                     viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
-                     viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
-                   }
-                   //console.log("viewport:", viewPortWidth, viewPortHeight);
-                   return [viewPortWidth, viewPortHeight];
-              }
-          </script>
-
-          <div id="remote" class="tab-pane">
-          </div>
-
-          <div id="request" class="tab-pane">
-            <div id="request-tab" class="users" style="float:left;display:inline">
-              
+        <div id="users" class="pane">
+          <div id="users-tab" class="users" style="float:left;display:inline">
+            <div class="block" style="display:flex">
+              <div id="user-find" class="block">
+                <input id="gamer-filter" type="text" placeholder="Enter username" onkeyup="filterGamers()"/><br>
+              </div>
+              <div id="avatar-upload" class="avatar block" onclick="UploadAvatar(this);">
+                <img id="avatar-img" border="0" src="images/avatar.png" alt="avatar" height="35"/>
+              </div>
+              <div id="avatar-caption" class="block" >
+                Upload image only
+              </div>                
+            </div>  
+            <div id="user-list" class="gamers-panel">
             </div>  
           </div>
+        </div>
 
-          <div id="active-game" class="tab-pane">
-            <div id="game-tab" class="users" style="float:left;display:inline">
-              
-            </div>  
-          </div>
 
-          <div id="users" class="tab-pane">
-            <div id="users-tab" class="users" style="float:left;display:inline">
-              <div class="block" style="display:flex">
-                <div id="user-find" class="block">
-                  <input id="gamer-filter" type="text" placeholder="Enter username" onkeyup="filterGamers()"/><br>
-                </div>
-                <div id="avatar-upload" class="avatar block" onclick="javascript:UploadAvatar(this);">
-                  <img id="avatar-img" border="0" src="images/avatar.png" alt="avatar" height="35"/>
-                </div>
-                <div id="avatar-caption" class="block" >
-                  Upload image only
-                </div>                
-              </div>  
-              <div id="user-list" class="gamers-panel">
-              </div>  
+        <div id="help" class="pane">
+          <div id="help-tab" class="users" style="float:left;display:inline">
+            <p>
+              <div id="help-text" class="help-font">
+              To start a game click on the <b>Users</b> tab at the top 
+              and select a player from the list by clicking on their play button.<a><img src="images/play.png"></a><br><br>
+
+              That selected user will see a request from you in the <b>Requests</b> tab.<br><br>
+              The requested user clicks on the <b>Request Tab</b> and clicks the button with your username.<br><br>
+              The game will start once each player selects the oppositions username from the <b>Active Games</b> tab.<br><br>
+              The user that started the game is known as the Issuer and only the Issuer can end a game.<br><br>
+              To end a game the user only has to click on the <a><img src="images/end_game.png"></a> button.<br><br>
+              If the Issuer ends a game the opposition will be prompted with a Yes/No confirmation prompt. The recipient can then choose whether to play again or quit the game.<br><br>
+              The winner of the game is given ther choice to play again.<br><br>
+              To play again click the <a><img src="images/play_again.png"></a> button.<br><br>
+              The score count tells the player how many parts of a ship it has hit and how many parts are remaining.<br><br>
+              Ships are randomnly made up of 3,4 and 5 parts and there are six ships on the gameboard.<br><br>
+              When the status changes to <a><img src="images/your_turn.png"></a> you can click on the hitboard".<br><br>
+              When the status changes to <a><img src="images/their_turn.png"></a> the hitboard will be disabled and you will have to wait.<br><br>
+              You will hear a <i>PING</i> when it's your turn to move.<br><br>
+              You will hear a small explosion when you hit part of a ship.<br><br>
+              You will hear a large explosion when you sink a battleship.<br><br>
+              All sunken ships will disappear from the sea view.<br><br>
+
+              <b> <u>MOBILES / KINDLES / TABLETS</u></b><br>
+              When playing on any of these devices you will have to 
+              click on the <b>HIT LIST</b> to change the screen back to the hit list before you can drop a bomb.<br><br>
+              If any of your ships get hit by the opposition the screen will automatically change over to the FLEET view.<br><br>
+              You can also click on <a><img src="images/your_turn.png"><img src="images/their_turn.png"></a> to change the view back to the hit list.<br>
             </div>
-          </div>
-
-          <div id="help" class="tab-pane">
-            <div id="help-tab" class="users" style="float:left;display:inline">
-              <p>
-                <div id="help-text" class="help-font">
-                To start a game click on the <b>Users</b> tab at the top 
-                and select a player from the list by clicking on their play button.<a><img src="images/play.png"></a><br><br>
-
-                That selected user will see a request from you in the <b>Requests</b> tab.<br><br>
-                The requested user clicks on the <b>Request Tab</b> and clicks the button with your username.<br><br>
-                The game will start once each player selects the oppositions username from the <b>Active Games</b> tab.<br><br>
-                The user that started the game is known as the Issuer and only the Issuer can end a game.<br><br>
-                To end a game the user only has to click on the <a><img src="images/end_game.png"></a> button.<br><br>
-                If the Issuer ends a game the opposition will be prompted with a Yes/No confirmation prompt. The recipient can then choose whether to play again or quit the game.<br><br>
-                The winner of the game is given ther choice to play again.<br><br>
-                To play again click the <a><img src="images/play_again.png"></a> button.<br><br>
-                The score count tells the player how many parts of a ship it has hit and how many parts are remaining.<br><br>
-                Ships are randomnly made up of 3,4 and 5 parts and there are six ships on the gameboard.<br><br>
-                When the status changes to <a><img src="images/your_turn.png"></a> you can click on the hitboard".<br><br>
-                When the status changes to <a><img src="images/their_turn.png"></a> the hitboard will be disabled and you will have to wait.<br><br>
-                You will hear a <i>PING</i> when it's your turn to move.<br><br>
-                You will hear a small explosion when you hit part of a ship.<br><br>
-                You will hear a large explosion when you sink a battleship.<br><br>
-                All sunken ships will disappear from the sea view.<br><br>
-
-                <b> <u>MOBILES / KINDLES / TABLETS</u></b><br>
-                When playing on any of these devices you will have to 
-                click on the <b>HIT LIST</b> to change the screen back to the hit list before you can drop a bomb.<br><br>
-                If any of your ships get hit by the opposition the screen will automatically change over to the FLEET view.<br><br>
-                You can also click on <a><img src="images/your_turn.png"><img src="images/their_turn.png"></a> to change the view back to the hit list.<br>
+            </p>
+            <div id="fleet">
+              <div id="fleet-title">
+                <b>THE FLEET</b>
               </div>
-              </p>
-              <div id="fleet">
-                <div id="fleet-title">
-                  <b>THE FLEET</b>
-                </div>
-                <div id="ships">
-                  <a><img src="images/fleet.png"></a>
-                </div>
+              <div id="ships">
+                <a><img src="images/fleet.png"></a>
               </div>
-            </div>  
-          </div>
+            </div>
+          </div>  
+        </div>
 
 
         </div>
 
       </div>    
+    
 
-      <!-- The Modal -->
-      <div id="loginModal" class="modal">
+      <div id="loginModal" class="modalx">
         <div id="loginForm" class="modal-content-ani">
           <p>Please enter a username and password:</p>
           <div class="login-edit">
@@ -237,8 +199,8 @@
                           <input  type="text" class="form-control" placeholder="username" id="login-username" value=""><br>
                           <input  type="password" class="form-control" placeholder="password" id="login-password" value=""><br>
                           <div id="btn-row" style="height:100%;float:center;display:inline">
-                            <div id="btn-submit-1" class="block horizontal horizontal publish-btn" onclick="javascript:validateLogin('NEW');"><span id="span-submit-1" class="login-span-btn">New</span></div>
-                            <div id="btn-submit-2" class="block horizontal horizontal publish-btn" onclick="javascript:validateLogin('EXISTS');"><span id="span-submit-2" class="login-span-btn">Already Exist</span></div>
+                            <div id="btn-submit-1" class="block horizontal horizontal push-btn" onclick="validateLogin('NEW');"><span id="span-submit-1" class="login-span-btn">New</span></div>
+                            <div id="btn-submit-2" class="block horizontal horizontal push-btn" onclick="validateLogin('EXISTS');"><span id="span-submit-2" class="login-span-btn">Already Exist</span></div>
                           </div>
                           <div id="messageid" class="msg"></div>
                       </div>
@@ -255,8 +217,8 @@
               <form id="playagainid">
                 <div class="form-group">
                     <div id="btn-row" style="height:100%;float:center;display:inline">
-                      <div id="btn-submit" class="block horizontal horizontal publish-btn" onclick="javascript:confirm('YES');"><span class="login-span-btn">Yes</span></div>
-                      <div id="btn-submit" class="block horizontal horizontal publish-btn" onclick="javascript:confirm('NO');"><span class="login-span-btn">No</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal push-btn" onclick="confirm('YES');"><span class="login-span-btn">Yes</span></div>
+                      <div id="btn-submit" class="block horizontal horizontal push-btn" onclick="confirm('NO');"><span class="login-span-btn">No</span></div>
                     </div>
 
                 </div>
@@ -264,7 +226,7 @@
           </div>
         </div>
       </div>
-
+      
 <script type="text/javascript">
 
     var button = document.getElementById("button");

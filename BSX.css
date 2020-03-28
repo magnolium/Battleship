@@ -136,7 +136,7 @@ label {
     to {top: 0; opacity: 1}
 }
 
-
+/*
 .header-fixed2 > thead,
 .header-fixed2 > tbody,
 .header-fixed2 > tbody > tr,
@@ -182,14 +182,75 @@ thead th {
 tbody {
     overflow-y: auto;
 }
-
+*/
 #homepage {
-    background-color: lightgray;
+    margin-left: 5px;
+    background-color: #EEEEEE;
+    border-radius: 9px;
+    border-style: solid;
+    border-width: thin;
+    border-color: #8BC528;
+    height: 60px;
+    width: calc(100% - 10px);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: #272F3C;
+  width:100%;
+  height:100%;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;  
+  overflow:hidden;
+  background-color: #cccccc;
+}
+
+.ui-page {
+    height: calc(100% - 5px);
+}
+
+.ui-input-text input#searchStockCode, .ui-input-search input#searchStockCode {
+    min-height: 0em;
+}
+
+.ui-input-text input#searchDescription, .ui-input-search input#searchDescription {
+    min-height: 0em;
+}
+
+.ui-mobile, .ui-mobile body
+{
+    height: 99.9%;
+}
+
+#page-title{
+    font-weight: bold;
+    font-size: 24px;"
+}
+
+#battleship-text{
+    width: 100%;
+    height: 20px;
+    text-align: center;
+}
+
+#avatar-2{
+    margin-top: 3px;
+    margin-right: 5px;
 }
 
 #headmargin {
-    background-color: #000;
-    color:white;
+    color:blue;
+    width: 100%;
+    height: 70px;
 }
 
 .node {
@@ -239,6 +300,7 @@ tbody {
     width: 88px;
  }
 
+/*
 #header {
     position:absolute;
     left: 10px;
@@ -248,7 +310,7 @@ tbody {
     font-family:'Dinot-Light';
     z-index: -9;
 }
-
+*/
 #btn-export {
     position:absolute;
     left:230px;
@@ -265,8 +327,30 @@ tbody {
 }
 
 .views {
-    background-color: green;
-    color:white;
+    width: 20%;
+    border-color: red;
+    border-radius: 4px;
+
+    height: 40px;    
+    user-select: none;
+    margin-left: 5px;
+
+    background: #2b6077;
+    border-color: #2b6077;
+    color: white;
+
+    border-style: solid;
+    border-top-width: thin;
+    border-right-width: thin;
+    border-bottom-width: thin;
+    border-left-width: 1px;
+    box-shadow: 4px 4px 4px #999;
+    margin-bottom: 7px;
+    cursor: pointer;    
+}
+
+.views span{
+    margin-left: 5px;
 }
 
 .node rect {
@@ -366,6 +450,30 @@ tr.inactive {
      text-align:left;
 }
 
+.header-btn{
+
+    height:35px;
+    width: 150px;
+    border-radius: 4px;
+    color: #fff;
+    background: #2b6077;
+    border-color: #2b6077;
+
+    border-style: solid;
+    border-top-width: thin;
+    border-right-width: thin;
+    border-bottom-width: thin;
+    border-left-width: 1px;
+    box-shadow: 4px 4px 4px #999;
+    margin-bottom: 7px;
+    margin-right: 20px;
+    text-align: -webkit-center;
+    text-align:-moz-center;
+    cursor: pointer;
+
+}
+
+
 .message-btn{
 
     font-size: 16px;
@@ -391,8 +499,32 @@ tr.inactive {
 
 }
 
+.push-btn
+{
+    position:relative;
 
-.publish-btn.primary{
+    height:35px;
+    width: 150px;
+    border-radius: 4px;
+    z-index: 9;
+    background: antiquewhite;
+    border-color: #2b6077;
+    color: green;
+
+    border-style: solid;
+    border-top-width: thin;
+    border-right-width: thin;
+    border-bottom-width: thin;
+    border-left-width: 1px;
+    box-shadow: 4px 4px 4px #999;
+    margin-bottom: 7px;
+    text-align: -webkit-center;
+    text-align:-moz-center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.push-btn.primary{
     margin-top: 5px;
     background: #6ea02d;
     border-color: #6ea02d;    
@@ -515,9 +647,9 @@ label {
 }
 
 #main-canvas {
-    position:absolute;
     top: 60px;
     width: 100%;
+    display: flex;
 }
 
 .nav-tabs{
@@ -533,7 +665,7 @@ label {
     left: 10px;
     font-size: 20px;
     font-family:'Dinot-Light';
-    color: yellow;
+    color: blue;
 }
 
 .cfg-remote{
@@ -542,7 +674,7 @@ label {
     left: 10px;
     font-size: 20px;
     font-family:'Dinot-Light';
-    color: yellow;
+    color: black;
     z-index: 9;
 }
 
@@ -614,13 +746,17 @@ label {
 }
 
 h1{
-    position:relative;
+    position: absolute;
 
     height: 60px;
     text-align: center;
 
-    line-height: 47px!important;
+    line-height: 10px!important;
 
+}
+
+#profile-image{
+    top: -30px;
 }
 
 #sample-threshold{
@@ -757,13 +893,18 @@ h1{
 }
 
 #data {
-    position:absolute;
-    top:  105px;
     border:medium;
     z-index: 4;
-
-    >
+    display: none;
 }
+
+
+#local {
+    border:medium;
+    z-index: 4;
+    display: none;
+}
+
 
 .coding{
     left: 0px;
@@ -784,44 +925,17 @@ div.info-tip-1{
 }
 
 #btn-group {
-    position: absolute;
-    top: 45px;
-    left: 15px;
-    width: 700px;
-    height: 60px;
-    margin-top: 20px;
+    width: 100%;
+    margin-top: 10px;
+    display: none;
 }
 
-.publish-btn
-{
-    position:relative;
-    font-size: 16px;
-    font-family:'Dinot-Light';
-    height:35px;
-    width: 150px;
-    border-radius: 4px;
-    z-index: 9;
-    background: #2b6077;
-    border-color: #2b6077;
-    color: white;
 
-    border-style: solid;
-    border-top-width: thin;
-    border-right-width: thin;
-    border-bottom-width: thin;
-    border-left-width: 1px;
-    box-shadow: 4px 4px 4px #999;
-    margin-bottom: 7px;
-    text-align: -webkit-center;
-    text-align:-moz-center;
-    cursor: pointer;
-}
 
 .status-btn
 {
     position:relative;
-    font-size: 16px;
-    font-family:'Dinot-Light';
+
     font-weight: 900;
     height:35px;
     width: 120px;
@@ -843,7 +957,7 @@ div.info-tip-1{
     cursor: pointer;
 }
 
-.publish-request-btn
+.push-request-btn
 {
     position:relative;
     font-size: 16px;
@@ -870,7 +984,7 @@ div.info-tip-1{
     cursor: pointer;
 }
 
-.publish-play-btn
+.push-play-btn
 {
     position:relative;
     font-size: 16px;
@@ -898,7 +1012,7 @@ div.info-tip-1{
     line-height: 30px;
 }
 
-.publish-playing-btn
+.push-playing-btn
 {
     position:relative;
     font-size: 16px;
@@ -925,7 +1039,7 @@ div.info-tip-1{
     cursor: pointer;
 }
 
-.publish-action-btn
+.push-action-btn
 {
     position:absolute;
     font-size: 16px;
@@ -953,7 +1067,7 @@ div.info-tip-1{
     cursor: pointer;
 }
 
-.publish-status-btn
+.push-status-btn
 {
     position:absolute;
     font-size: 16px;
@@ -981,7 +1095,7 @@ div.info-tip-1{
     cursor: pointer;
 }
 
-.publish-span-btn{
+.push-span-btn{
     position:relative;
     display: block;
     text-align: center;
@@ -1014,6 +1128,7 @@ div.info-tip-1{
 }
 
 #loginModal{
+    display: none; /* Hidden by default */
     height:100%;
     width: 100%;    
     z-index: 10;
@@ -1069,19 +1184,17 @@ div.info-tip-1{
 }
 
 #request{
-    position: absolute;
     top: 60px;
     left: 15px;
     width: 400px;
-
+    display: none;
 }
 
 #active-game{
-    position: absolute;
     top: 60px;
     left: 15px;
     width: 400px;
-
+    display: none;
 }
 
 #action-wait{
@@ -1105,15 +1218,15 @@ div.info-tip-1{
 }
 
 #btn-end-game{
-    color: #FFFFFF;    
+    color: #000000;    
 }
 
 #btn-end-game.disable{
-    color: #808080;    
+    color: lightgray;    
 }
 
 #btn-play-again.disable{
-    color: #808080;    
+    color: lightgray;    
 }
 
 #btn-percentage{
@@ -1122,6 +1235,7 @@ div.info-tip-1{
 
 #btn-status{
     width: 100px;
+    margin-right: 20px;
 }
 
 #btn-end-game{
@@ -1194,6 +1308,7 @@ div.info-tip-1{
 
 #playAgainModal{
     z-index: 10;
+    display: none; /* Hidden by default */
 }
 
 #playAgainForm{
@@ -1254,6 +1369,11 @@ div.info-tip-1{
     
 }
 */
+
+#help{
+    display: none;
+}
+
 .help-font {
     float: right;
     font-size: 20px;
@@ -1264,7 +1384,7 @@ div.info-tip-1{
 #help-text{
     position: relative;
     left: 15px;
-    width: 400px;
+    width: calc(100% - 20px);
 }
 
 .explosion {
@@ -1272,10 +1392,7 @@ div.info-tip-1{
 }
 
 #fleet{
-    position: absolute;
-    left: 450px;
-    top: 50px;
-    float:center;
+    float:right;
     display:inline;
 }
 
@@ -1334,8 +1451,9 @@ div.info-tip-1{
 }
 
 #users{
+    display: none;
     z-index: 9;
-    position: absolute;
+
     top: 30px;    
     left: 10px;
     width: 100%;

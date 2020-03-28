@@ -1,8 +1,4 @@
 
-if (document.createStyleSheet) {
-    document.createStyleSheet('bsx.css');
-}
-
 $(document).ready(function () {
     //console.log("Browser ready");
 
@@ -20,8 +16,6 @@ $(document).ready(function () {
     });
 
     hubConnection.on("UpdateGameBoard", data => {
-        //console.log("JV-UpdateGameBoard:", gUser, gRemoteUser, data);
-        //console.log("UpdateGameBoard:", data);
         clientId = data;
         getStatus();        
     });
@@ -32,13 +26,24 @@ $(document).ready(function () {
         LoadUserList();
     });
 
+    hubConnection.on("RemoveFromUserlist", data => {
+      var datax = JSON.parse(data);
+      var players = datax.matck_key.split('|');
+      RemoveFromUserlist(players);
+    });
+
+    hubConnection.on("ClearTheBoard", data => {
+        var datax = JSON.parse(data);
+        var mtch = datax.user1+"|"+datax.user2+"|"+datax.user1;
+
+        if(mtch.indexOf(gUser+"|"+gRemoteUser) !== -1)
+        {
+          clearGameboard(true);              
+        }
+    });
 
     hubConnection.on("NewGame", data => {
-
         var datax = JSON.parse(data);
-        
-        //console.log("NewGame:", datax);
-
         Polling = false;
 
         clearGameboard();
@@ -69,6 +74,36 @@ $(document).ready(function () {
         LoadUserList();
     })
 })
+
+
+
+function getViewport() 
+{
+   var viewPortWidth;
+   var viewPortHeight;
+
+   // the more standards compliant browsers (mozilla/netscape/opera/IE7) use window.innerWidth and window.innerHeight
+   if (typeof window.innerWidth != 'undefined') {
+     viewPortWidth = window.innerWidth,
+     viewPortHeight = window.innerHeight
+   }
+
+  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+   else if (typeof document.documentElement != 'undefined'
+   && typeof document.documentElement.clientWidth !=
+   'undefined' && document.documentElement.clientWidth != 0) {
+      viewPortWidth = document.documentElement.clientWidth,
+      viewPortHeight = document.documentElement.clientHeight
+   }
+
+   // older versions of IE
+   else {
+     viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
+     viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
+   }
+   //console.log("viewport:", viewPortWidth, viewPortHeight);
+   return [viewPortWidth, viewPortHeight];
+}
 
 function Initialize()
  {
@@ -143,6 +178,11 @@ function Initialize()
     }
     else
     {
+        if(device_mode === "PC")
+        {
+          $("#id-remote")[0].style.display="none";          
+        }
+
         $("#hdr-cfg-local").html(gUser);
         $("#hdr-cfg-remote").html(gRemoteUser);
 
@@ -238,6 +278,7 @@ var aud2 = null;
 var aud3 = null;
 var aud4 = null;
 var idx = 0;
+var GameboardCleared = false;
 
 function SetSelect()
 {
@@ -349,32 +390,36 @@ function HideTheGameboards()
 
 
 function OnSelectedTab(tabView){
-    
+    viewMode(tabView);
+
+    return;
+
+    /*
     //console.log("OnSelectedTab["+tabView+"]["+lastTab+"]");
 
     lastTab = tabView;
 
     if(tabView==="remote")
     {
-        $("#data").show();
-        $('.header-btn').show();
-        $("#request-tab").hide();
-        $("#game-tab").hide();
-        $("#users-tab").hide();
-        $("#help-tab").hide();
-        $("#online").hide();
+        // $("#data").show();
+        // $('.header-btn').show();
+        // $("#request-tab").hide();
+        // $("#game-tab").hide();
+        // $("#users-tab").hide();
+        // $("#help-tab").hide();
+        // $("#online").hide();
         HideHitList(true);
     }
     if(tabView==="local")
     {
-        $("#data").show();
-        $('.header-btn').show();
+        //$("#data").show();
+        //$('.header-btn').show();
         
-        $("#request-tab").hide();
-        $("#users-tab").hide();
-        $("#help-tab").hide();
-        $("#game-tab").hide();
-        $("#online").hide();
+        // $("#request-tab").hide();
+        // $("#users-tab").hide();
+        // $("#help-tab").hide();
+        // $("#game-tab").hide();
+        // $("#online").hide();
         HideHitList(false);
     }
     if(tabView==="request")
@@ -427,6 +472,7 @@ function OnSelectedTab(tabView){
         $("#data").hide();
         HideTheGameboards();
     }    
+    */
 }
 
 function objKeydown()
@@ -971,7 +1017,7 @@ function btnEndGame() //
 }
 
 function validateLogin(type){
-    //console.log( "validateLogin", $("#login-username").val() );
+    console.log( "validateLogin", $("#login-username").val() );
     var validatedUser = false;
     var validatedPswd = false;
     $("#login-username").each(function () {
@@ -1064,7 +1110,7 @@ function validateLogin(type){
 
 
 function playGame(user){
-    //console.log("playGame", user);
+    console.log("playGame", user);
     
     gRemoteUser = user;
 
@@ -1134,6 +1180,8 @@ function postApiAction(cmd, info=""){
                     clearGameboard();
                     //REQUEST_MODE = false;
 
+                    GameboardCleared = false;
+                    
                     BuildTheFleet();   
                     
                     hasShips = true;
@@ -1176,14 +1224,18 @@ function postApiAction(cmd, info=""){
                 isIssuer = "";
                 localStorage.setItem("remote_user", "");
                 gRemoteUser = "";    
+                
                 console.log("*** END GAME ***");
-                UpdateField("ship_down_for", "@@@@", "string");
-                UpdateField("winner", "@@@@", "string"); 
-                //console.log("-----------------------------");
+                
+                //UpdateField("ship_down_for", "@@@@", "string");
+                //UpdateField("winner", "@@@@", "string"); 
+                
                 clearGameboard();     
                 if(isIssuer!==gUser)
                     $('#btn-end-game').addClass('disable')
+
                 getStatus();        
+                
                 pauseClock = false;
             }
 
@@ -1246,7 +1298,7 @@ function postApiAction(cmd, info=""){
 }
 
 function buildFleetJSON(HASBRACKETS=true){
-    //console.log("buildFleetJSON", HASBRACKETS);
+    console.log("buildFleetJSON", HASBRACKETS);
 
     var jx = "";
     var ship = "\"ships\" : [";
@@ -1324,9 +1376,12 @@ function UpdateHitlistJSON(cell){
     }    
 }
 
-function clearGameboard(){
+function clearGameboard(bypass=false){
     //Clear the gameboard
     //console.log("clearGameboard");
+    if(!bypass)
+      if(GameboardCleared)
+          return;
 
     buildHitZones(0);
     
@@ -1337,6 +1392,17 @@ function clearGameboard(){
 
     svg.selectAll(".sea").attr("isship", "0").attr("hit", "X").attr("sunk", "N").attr("href", img); 
     svg.selectAll(".hit").attr("isship", "0").attr("hit", "X").attr("sunk", "N").attr("href", imgh); 
+
+    svg.selectAll("image").remove();
+    svg.selectAll("text").remove();   
+ 
+    for(x =0; x<columns; x++)
+    {
+        for(y =0; y<rows; y++)
+        {
+            createSVGObject(x, y, 0);
+        }
+    }
 
     var btn = document.getElementById('btn-status');
     btn.style.color = "#009900";
@@ -1350,7 +1416,10 @@ function clearGameboard(){
     $("#percid")[0].innerHTML = 0;
 
     $("#hdr-cfg-local").html(gUser);
-    $("#hdr-cfg-remote").html(gRemoteUser);            
+    $("#hdr-cfg-remote").html(gRemoteUser);         
+
+
+    GameboardCleared = true;   
 
 }
 
@@ -1413,6 +1482,7 @@ function getStatus(){
             // you can access your data here
             //if(data.requests.length === 1 )
             //    return;
+            //console.log('getStatus', data);
 
             var requests = data.requests.find(function(element, index) {
                 element.index = index;
@@ -1572,28 +1642,33 @@ function getStatus(){
 
             $.each(data.requests, function (i, obj)
             {
+                var src = "";
                 if(obj.user_2 === gUser && obj.action==="REQ")
                 {
                     q++;
-                    var tddata = '<div id="btn-' + obj.user_1 + '" class="block select-group publish-play-btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-req"><img id="req_'+obj.user_1+'" class="profile-pic" border="0" src="" alt="ZZZ" height="100"/></div></div>';
+                    src = domain+'/avatars/'+obj.user_1+".jpg";
+                    var tddata = '<div id="btn-' + obj.user_1 + '" class="block select-group push-play-btn"  onclick="javascript:playGame(\''+ obj.user_1 + '\');"><span class="push-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-req"><img id="req_'+obj.user_1+'" src="'+src+'" class="profile-pic" border="0" src="" alt="ZZZ" height="100"/></div></div>';
                     $("#request-tab").append(tddata);
                     GetImageList(obj.user_1, "#req_"+obj.user_1);                    
                 }
                 
                 if( (obj.user_1 === gUser || obj.user_2 === gUser ) && ( obj.action==="PLAY" || obj.action==="WAIT"))
                 {
+                    //console.log("ACTIVE", i, obj);
                     k++;
                     var tddata = "";
                     var userid;
                     if(gUser === obj.user_1)
                     {
+                        src = domain+'/avatars/'+obj.user_2+".jpg";
                         userid = obj.user_2;
-                        tddata = '<div id="btx-' + obj.user_2 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="publish-span-btn" >' + obj.user_2 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_2+'" class="profile-pic" border="0" src="" alt="XXX" height="100"/></div></div>';
+                        tddata = '<div id="btx-' + obj.user_2 + '" class="block select-group push-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_2 + '\');"><span class="push-span-btn" >' + obj.user_2 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_2+'" src="'+src+'" class="profile-pic" border="0" src="" alt="XXX" height="100"/></div></div>';
                     }
                     else
                     {
+                        src = domain+'/avatars/'+obj.user_1+".jpg";
                         userid = obj.user_1;
-                        tddata = '<div id="btx-' + obj.user_1 + '" class="block select-group publish-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="publish-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_1+'" class="profile-pic" border="0" src="" alt="YYY" height="100"/></div></div>';
+                        tddata = '<div id="btx-' + obj.user_1 + '" class="block select-group push-playing-btn"  onclick="javascript:continueGame(\''+ obj.user_1 + '\');"><span class="push-span-btn" >' + obj.user_1 + '</span><div class="profile-pic-act"><img id="img_'+obj.user_1+'" src="'+src+'" class="profile-pic" border="0" src="" alt="YYY" height="100"/></div></div>';
                     }
 
                     $("#game-tab").append(tddata);
@@ -1926,7 +2001,7 @@ function hitCount(hits){
 
 
 function OnGameboardClick(){
-    //console.log("OnGameboardClick", this);
+    console.log("OnGameboardClick", this);
     if(this.getAttribute("class").indexOf("sea") != -1)
     {
         btnTest(this);
@@ -2056,7 +2131,7 @@ function confirm(answer){
 }
 
 function PlayAgain(){
-    //console.log("PlayAgain", current_status);
+    console.log("PlayAgain", current_status);
     BuildTheFleet(true);
     var jx_them = buildFleetJSON();
 
@@ -2139,7 +2214,7 @@ function SuccessCallback(data){
             if(obj.game_id !== gUser)
             {
                 //console.log("GAMERS:", obj);
-                var tddata = '<div id="btn-' + obj.game_id + '" class="select-group publish-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div><div class="profile-pic-usr"><img id="usr_'+obj.game_id+'"  border="0" src="" alt="" height="100"/></div></div>';
+                var tddata = '<div id="btn-' + obj.game_id + '" class="select-group push-play-btn block" onmouseover="javascript:HighlightOn(this.id)" onmouseout="javascript:HighlightOff(this.id)" onclick="javascript:RequestUser(\''+ obj.game_id + '\');"><div class="user-play">' + obj.game_id + '</div><div class="profile-pic-usr"><img id="usr_'+obj.game_id+'"  border="0" src="" alt="" height="100"/></div></div>';
                 $("#user-list").append(tddata);
             }
             GetImage(obj.game_id, "#usr_"+obj.game_id, obj.image_type);
@@ -2446,3 +2521,57 @@ function GetImage(user, id, type)
     } 
     */
 }
+
+function viewMode(view)
+{
+  console.log(view);
+  //OnSelectedTab(view);
+
+  $("#users")[0].style.display="none";
+  $("#help")[0].style.display="none";
+  $("#btn-group")[0].style.display="none";
+  $("#data")[0].style.display="none";
+  $("#local")[0].style.display="none";
+  $("#request")[0].style.display="none";
+  $("#active")[0].style.display="none";
+
+  var arr = document.querySelectorAll(".views" );
+
+  arr.forEach(function(dtx, i)
+  {
+    document.getElementById(dtx.id).style.background = "#2B6077";
+  });
+
+
+  $("#"+view)[0].style.display="flex";
+  document.getElementById("id-"+view).style.background = "#0000ff";
+
+  if(view==="remote")
+  {
+    $("#data")[0].style.display="flex";
+    $("#btn-group")[0].style.display="flex";
+    HideHitList(true);
+  }
+
+  if(view==="local")
+  {
+    $("#data")[0].style.display="flex";
+    $("#btn-group")[0].style.display="flex";
+    HideHitList(false);
+  }
+}
+
+
+function RemoveFromUserlist(users)
+{
+  LoadUserList();
+  // console.log("Hide user", users);
+
+  // var arr = document.querySelectorAll(".select-group.push-play-btn" );
+
+  // arr.forEach(function(dtx, i)
+  // {
+  //   console.log("User", 1, dtx);
+  // });
+}
+
