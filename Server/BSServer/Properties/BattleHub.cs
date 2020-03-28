@@ -70,14 +70,11 @@ namespace SignalR.Server.Hubs
             try
             {
                 string userid = bsdx.GetElement("userid").Value.ToString();
-
-
                 string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
                 string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
                 string s_collection = "gamers";
 
                 sb.Clear();
-                //sb.AppendFormat("{{ \"game_id\" : {{$ne : \"{0}\"}} }}", userid);
                 sb.AppendFormat("{{}}");
 
                 GetDB db = new GetDB(s_serverip, s_Database);
@@ -101,14 +98,19 @@ namespace SignalR.Server.Hubs
 
                     foreach (BsonDocument bsd in query)
                     {
-                        bsd.RemoveAt(0);
+                        if (!InPlay(bsdx.GetElement("userid").Value.ToString(), bsd.GetElement("game_id").Value.ToString()))
+                        {
+                            bsd.RemoveAt(0);
 
-                        if (i > 0)
-                            sb.AppendFormat(",");
+                            if (i > 0)
+                                sb.AppendFormat(",");
 
-                        sb.AppendFormat("{0}", bsd.ToString());
-                        i++;
+                            sb.AppendFormat("{0}", bsd.ToString());
+                            i++;
+                        }
                     }
+
+
                     sb.AppendFormat("]}} }}");
                 }
                 else
@@ -124,6 +126,34 @@ namespace SignalR.Server.Hubs
             string json = sb.ToString();
 
             return json;
+        }
+
+        private bool InPlay(string iss, string rem)
+        {
+            if (iss == rem) return false;
+
+            string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
+            string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
+            string s_collection = "gamerboard";
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("{{ $or: [{{ \"game_id\" : \"{0}|{1}\" }}, {{ \"game_id\" : \"{1}|{0}\" }} ] }}", iss, rem);
+
+            try
+            {
+                MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
+                BsonDocument queryX = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
+                QueryDocument queryDoc = new QueryDocument(queryX);
+                MongoCursor<BsonDocument> datax = gamersDoc.Find(queryDoc);
+                if (datax.Count() > 0)
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return false;
         }
 
         public string RequestSubmit(string data)
@@ -205,6 +235,11 @@ namespace SignalR.Server.Hubs
                     BsonDocument bsdx = MongoDB.Bson.Serialization.BsonSerializer.Deserialize<BsonDocument>(sb.ToString());
                     gamers.Insert(bsdx);
                 }
+
+                //Send msg to users userlist to remove your avatar
+                StringBuilder usx = new StringBuilder();
+                usx.AppendFormat("{{ \"matck_key\" : \"{0}\" }}", idd_1);
+                Clients.All.SendAsync("RemoveFromUserlist", usx.ToString());
             }
             catch (Exception ex)
             {
@@ -429,9 +464,7 @@ namespace SignalR.Server.Hubs
             if (command == "UPDATEGAMEBOARD")
             {
                 sb.Clear();
-                //sb.AppendFormat("{{ $or: [{{\"game_id\" : \"{0}|{1}\", \"action\" : \"PLAY\" }}, {{\"game_id\" : \"{1}|{0}\", \"action\" : \"PLAY\" }} ] }}", user_1, user_2);
-
-                sb.AppendFormat("{ $or : [{{ $and : [ {{user_1:\"{0}\"}}, {{user_2: \"{1}\"}} ]}}, {{$and : [ {{user_1:\"{0}\"}}, {{user_2: \"{1}\"}} ]}}] }}", user_1, user_2);
+                sb.AppendFormat("{{ $or : [{{ $and : [ {{user_2:\"{0}\"}}, {{user_1: \"{1}\"}} ]}}, {{$and : [ {{user_1:\"{0}\"}}, {{user_2: \"{1}\"}} ]}}] }}", user_1, user_2);
                 try
                 {
                     MongoCollection<BsonDocument> gamersDoc = dbMongoREAD.GetCollection<BsonDocument>(s_collection);
@@ -582,6 +615,12 @@ namespace SignalR.Server.Hubs
                         json.AppendFormat("{{ \"game_id\" : \"{0}\", \"action\" : \"{1}\", \"user_1\" : \"{2}\", \"user_2\" : \"{3}\" }}", game_id, command, user_1, user_2);
 
                         gamersDoc.Remove(queryDoc);
+
+                        sb.Clear();
+                        sb.AppendFormat("{{ \"user1\" : \"{0}\", \"user2\" : \"{1}\" }}", user_1, user_2);
+
+
+                        Clients.All.SendAsync("ClearTheBoard", sb.ToString());
                     }
                 }
                 catch (Exception ex)
@@ -866,19 +905,12 @@ namespace SignalR.Server.Hubs
             else
                 userid = bsd.GetElement("user_id").Value.ToString();
 
-            //string remoteid = bsd.GetElement("remote").Value.ToString();
-
             StringBuilder sb = new StringBuilder();
             string s_serverip = _configurationRoot.GetValue<string>("AppSettings:MongoServer");
             string s_Database = _configurationRoot.GetValue<string>("AppSettings:MongoDatabase");
             string s_collection = "gamerboard";
 
-            //if(gamersid[0] == "" || gamersid[1] == "")
-                sb.AppendFormat("{{ $or : [ {{\"user_1\":\"{0}\"}}, {{\"user_2\":\"{0}\"}} ] }}", userid);
-            //else
-            //{
-            //    sb.AppendFormat("{{ $or : [{{ $and : [ {{ user_1:\"{0}\" }}, {{user_2: \"{1}\"}} ] }}, {{ $and : [ {{ user_2:\"{0}\" }}, {{ user_1: \"{1}\"}} ] }}]  }}", gamersid[0], gamersid[1]);
-            //}
+            sb.AppendFormat("{{ $or : [ {{\"user_1\":\"{0}\"}}, {{\"user_2\":\"{0}\"}} ] }}", userid);
 
             GetDB db = new GetDB(s_serverip, s_Database);
             db.GetSystemDatabase(s_Database, s_collection, ref dbMongoREAD, ref s_Database, ref s_collection);
@@ -1303,7 +1335,6 @@ namespace SignalR.Server.Hubs
         {
             UserHandler.ConnectedIds.Add(Context.ConnectionId);
 
-            //foreach (string str in UserHandler.ConnectedIds)
             Clients.All.SendAsync("send", Context.ConnectionId);
 
             //foreach (string str in UserHandler.ConnectedIds)
